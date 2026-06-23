@@ -3,59 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>美瞳库存监控台</title>
+    <title>美瞳库存看板</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: #f5f5f5;
+            background: #f0f2f5;
             min-height: 100vh;
         }
-        
-        /* 顶部轮播条 */
+
+        /* === 顶部轮播条(可独立使用) === */
         .ticker-bar {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 42px;
-            background: linear-gradient(90deg, #ff4757 0%, #ff6348 100%);
+            top: 0; left: 0; right: 0;
+            height: 44px;
+            background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
             color: white;
             display: flex;
             align-items: center;
             z-index: 9999;
+            box-shadow: 0 2px 12px rgba(231, 76, 60, 0.3);
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            transition: height 0.3s ease;
+            user-select: none;
         }
-        .ticker-bar.expanded {
-            height: auto;
-            min-height: 42px;
+        .ticker-bar:hover {
+            background: linear-gradient(90deg, #c0392b 0%, #a93226 100%);
         }
         .ticker-label {
-            background: rgba(0,0,0,0.2);
-            padding: 0 16px;
-            height: 42px;
+            background: rgba(0,0,0,0.25);
+            padding: 0 18px;
+            height: 44px;
             display: flex;
             align-items: center;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 14px;
-            white-space: nowrap;
+            letter-spacing: 1px;
             flex-shrink: 0;
         }
         .ticker-content {
             flex: 1;
             overflow: hidden;
-            height: 42px;
-            line-height: 42px;
+            height: 44px;
+            line-height: 44px;
             position: relative;
+            mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
         }
         .ticker-scroll {
             display: flex;
-            animation: scroll 30s linear infinite;
+            animation: scroll 80s linear infinite;
             white-space: nowrap;
             position: absolute;
             left: 0;
+        }
+        .ticker-scroll:hover {
+            animation-play-state: paused;
         }
         @keyframes scroll {
             0% { transform: translateX(0); }
@@ -64,148 +66,197 @@
         .ticker-item {
             display: inline-flex;
             align-items: center;
-            padding: 0 20px;
+            padding: 0 24px;
             font-size: 13px;
         }
         .ticker-item .badge {
-            background: rgba(255,255,255,0.25);
-            border-radius: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
             padding: 2px 8px;
             margin-right: 8px;
             font-size: 11px;
+            font-weight: 700;
         }
-        .ticker-item .badge.permanent {
-            background: #2f3542;
+        .ticker-item .badge.down {
+            background: rgba(0,0,0,0.3);
         }
-        .ticker-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0 12px;
-            flex-shrink: 0;
+        .ticker-item .date {
+            color: #ffeaa7;
+            font-weight: 700;
+            margin-left: 4px;
         }
         .ticker-btn {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.15);
             border: none;
             color: white;
-            padding: 4px 12px;
+            padding: 5px 14px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 12px;
+            margin-right: 8px;
             transition: background 0.2s;
+            flex-shrink: 0;
         }
         .ticker-btn:hover {
-            background: rgba(255,255,255,0.35);
+            background: rgba(255,255,255,0.3);
         }
-        
-        /* 主内容区 */
+
+        /* === 数据更新提示条 === */
+        .update-bar {
+            position: fixed;
+            top: 44px; left: 0; right: 0;
+            background: linear-gradient(90deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 9998;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
+        }
+        .update-bar.show {
+            display: flex;
+        }
+        .update-bar .refresh-btn {
+            background: white;
+            color: #e67e22;
+            border: none;
+            padding: 5px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            transition: transform 0.2s;
+        }
+        .update-bar .refresh-btn:hover {
+            transform: scale(1.05);
+        }
+        .update-bar .close-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* === 独立轮播模式 === */
+        body.ticker-only {
+            background: transparent;
+            min-height: auto;
+        }
+        body.ticker-only .ticker-bar {
+            position: relative;
+            border-radius: 0 0 8px 8px;
+        }
+        body.ticker-only .main-content {
+            display: none;
+        }
+
+        /* === 主内容区 === */
         .main-content {
-            margin-top: 42px;
-            padding: 20px;
-            max-width: 1200px;
+            margin-top: 44px;
+            padding: 16px;
+            max-width: 1400px;
             margin-left: auto;
             margin-right: auto;
         }
-        
-        /* 搜索栏 */
-        .search-box {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-        .search-box h2 {
-            font-size: 16px;
-            margin-bottom: 12px;
-            color: #333;
-        }
-        .search-input-wrap {
-            display: flex;
-            gap: 10px;
-        }
-        .search-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e8e8e8;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .search-input:focus {
-            border-color: #ff4757;
-        }
-        .search-btn {
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .search-btn:hover {
-            background: #ff6348;
-        }
-        .search-results {
-            margin-top: 16px;
-            display: none;
-        }
-        .search-results.active {
-            display: block;
-        }
-        .result-card {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 8px;
+
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-left: 4px solid #ff4757;
+            margin-bottom: 16px;
         }
-        .result-card.ok {
-            border-left-color: #2ed573;
+        .header h1 {
+            font-size: 20px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .result-card.warning {
-            border-left-color: #ffa502;
-        }
-        .result-info h4 {
-            font-size: 14px;
-            color: #333;
-            margin-bottom: 4px;
-        }
-        .result-info p {
+        .header .subtitle {
             font-size: 12px;
-            color: #666;
+            color: #7f8c8d;
+            margin-top: 4px;
         }
-        .result-status {
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .header-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .header-btn.primary {
+            background: #e74c3c;
+            color: white;
+        }
+        .header-btn.primary:hover {
+            background: #c0392b;
+        }
+        .header-btn.secondary {
+            background: white;
+            color: #555;
+            border: 1px solid #ddd;
+        }
+        .header-btn.secondary:hover {
+            background: #f5f5f5;
+        }
+
+        /* === 数据卡片 === */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            text-align: center;
+        }
+        .stat-card .number {
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .stat-card .number.red { color: #e74c3c; }
+        .stat-card .number.orange { color: #e67e22; }
+        .stat-card .number.green { color: #27ae60; }
+        .stat-card .number.blue { color: #3498db; }
+        .stat-card .label {
             font-size: 12px;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 4px;
-            white-space: nowrap;
+            color: #7f8c8d;
+            margin-top: 6px;
         }
-        .status-out {
-            background: #ffebee;
-            color: #c62828;
+        .stat-card .trend {
+            font-size: 11px;
+            margin-top: 4px;
         }
-        .status-restock {
-            background: #fff3e0;
-            color: #e65100;
-        }
-        .status-ok {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-        
-        /* 面板 */
+        .trend.up { color: #e74c3c; }
+        .trend.down { color: #27ae60; }
+
+        /* === 面板 === */
         .panels {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 16px;
         }
         @media (max-width: 768px) {
             .panels { grid-template-columns: 1fr; }
@@ -213,81 +264,134 @@
         .panel {
             background: white;
             border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
         }
         .panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            padding: 14px 16px;
+            border-bottom: 1px solid #f0f0f0;
         }
-        .panel h3 {
-            font-size: 16px;
+        .panel-title {
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 15px;
+            font-weight: 700;
         }
-        .panel h3 .icon {
-            width: 8px;
-            height: 8px;
+        .panel-title .dot {
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             display: inline-block;
         }
-        .icon-red { background: #ff4757; }
-        .icon-orange { background: #ffa502; }
-        .count-badge {
+        .dot-red { background: #e74c3c; }
+        .dot-orange { background: #e67e22; }
+        .dot-green { background: #27ae60; }
+        .panel-badge {
             background: #f0f0f0;
             color: #666;
-            padding: 2px 10px;
+            padding: 3px 10px;
             border-radius: 10px;
             font-size: 12px;
+            font-weight: 700;
         }
-        .stock-list {
-            max-height: 400px;
+        .panel-body {
+            padding: 12px;
+            max-height: 500px;
             overflow-y: auto;
         }
+
+        /* === 库存项 === */
         .stock-item {
-            padding: 12px;
+            padding: 12px 14px;
             border-radius: 8px;
             margin-bottom: 8px;
-            background: #f8f9fa;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
         }
         .stock-item:hover {
             transform: translateX(4px);
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .stock-item.permanent {
-            background: #ffebee;
-            border-left: 3px solid #c62828;
+            background: #fdf2f2;
+            border-left: 4px solid #e74c3c;
         }
         .stock-item.restocking {
-            background: #fff3e0;
-            border-left: 3px solid #e65100;
+            background: #fef6e9;
+            border-left: 4px solid #e67e22;
+        }
+        .stock-item.arriving-today {
+            background: #e8f5e9;
+            border-left: 4px solid #27ae60;
+            animation: pulse 2s infinite;
+        }
+        .stock-item.arriving-soon {
+            background: #fff8e1;
+            border-left: 4px solid #f9a825;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.2); }
+            50% { box-shadow: 0 0 0 6px rgba(39, 174, 96, 0); }
+        }
+        .stock-item .name-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
         .stock-item .name {
-            font-weight: 600;
+            font-weight: 700;
             font-size: 14px;
-            color: #333;
-            margin-bottom: 4px;
+            color: #2c3e50;
+        }
+        .stock-item .tag {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            white-space: nowrap;
+            margin-left: 8px;
+        }
+        .tag-type {
+            background: rgba(0,0,0,0.06);
+            color: #666;
+        }
+        .tag-status-down {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .tag-status-coming {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        .tag-status-today {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .stock-item .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
         }
         .stock-item .meta {
             font-size: 12px;
             color: #888;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-        .stock-item .meta .tag {
-            background: rgba(0,0,0,0.06);
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 11px;
         }
         .stock-item .date {
-            color: #e65100;
-            font-weight: 600;
+            font-size: 12px;
+            font-weight: 700;
+            color: #e67e22;
+        }
+        .stock-item .date.today {
+            color: #27ae60;
+        }
+        .stock-item .date.past {
+            color: #e74c3c;
         }
         .stock-item .note {
             font-size: 11px;
@@ -295,8 +399,93 @@
             margin-top: 4px;
             font-style: italic;
         }
-        
-        /* 管理模态框 */
+        .stock-item .check-btn {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .stock-item .check-btn:hover {
+            background: #f5f5f5;
+        }
+        .stock-item.checked {
+            opacity: 0.5;
+        }
+        .stock-item.checked .name {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        /* === 快速编辑区 === */
+        .quick-edit {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        .quick-edit-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .quick-edit-row select {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+        }
+        .quick-edit-row input {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        /* === 面板内快速添加 === */
+        .panel-add-form {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .panel-add-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            width: 100%;
+        }
+        .panel-add-row input {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+        }
+
+        .stock-item.pinned {
+            border-left-width: 6px;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+        }
+
+        /* === 空状态 === */
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #bbb;
+        }
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+            opacity: 0.4;
+        }
+
+        /* === 管理模态框 === */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -319,7 +508,7 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.2);
         }
         .modal-header {
-            padding: 20px;
+            padding: 18px 20px;
             border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
@@ -354,14 +543,14 @@
             padding: 20px;
         }
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
         .form-group label {
             display: block;
             font-size: 13px;
             font-weight: 600;
             color: #555;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
         .form-group input, .form-group select {
             width: 100%;
@@ -372,7 +561,7 @@
             outline: none;
         }
         .form-group input:focus, .form-group select:focus {
-            border-color: #ff4757;
+            border-color: #e74c3c;
         }
         .form-row {
             display: grid;
@@ -383,7 +572,7 @@
             display: flex;
             gap: 10px;
             justify-content: flex-end;
-            margin-top: 20px;
+            margin-top: 16px;
             padding-top: 16px;
             border-top: 1px solid #eee;
         }
@@ -397,11 +586,11 @@
             transition: all 0.2s;
         }
         .btn-primary {
-            background: #ff4757;
+            background: #e74c3c;
             color: white;
         }
         .btn-primary:hover {
-            background: #ff6348;
+            background: #c0392b;
         }
         .btn-secondary {
             background: #f0f0f0;
@@ -414,24 +603,21 @@
             background: #ffebee;
             color: #c62828;
         }
-        .btn-danger:hover {
-            background: #ffcdd2;
-        }
         .btn-success {
             background: #e8f5e9;
             color: #2e7d32;
         }
-        .btn-success:hover {
-            background: #c8e6c9;
+        .btn-small {
+            padding: 5px 12px;
+            font-size: 12px;
         }
-        
-        /* 列表管理 */
+
         .manage-list {
             max-height: 300px;
             overflow-y: auto;
             border: 1px solid #eee;
             border-radius: 8px;
-            margin-top: 16px;
+            margin-top: 14px;
         }
         .manage-item {
             display: flex;
@@ -463,27 +649,21 @@
             display: flex;
             gap: 6px;
         }
-        .btn-small {
-            padding: 4px 10px;
-            font-size: 12px;
-            border-radius: 4px;
-        }
-        
-        /* 数据导入导出 */
+
         .data-ops {
             background: #f8f9fa;
             border-radius: 8px;
-            padding: 16px;
-            margin-top: 20px;
+            padding: 14px;
+            margin-top: 18px;
         }
         .data-ops h4 {
             font-size: 14px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             color: #555;
         }
         .data-ops textarea {
             width: 100%;
-            height: 120px;
+            height: 100px;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 6px;
@@ -496,8 +676,7 @@
             gap: 8px;
             margin-top: 10px;
         }
-        
-        /* 提示 */
+
         .toast {
             position: fixed;
             bottom: 30px;
@@ -516,65 +695,138 @@
             transform: translateX(-50%) translateY(0);
             opacity: 1;
         }
-        
-        /* 空状态 */
-        .empty {
-            text-align: center;
-            padding: 40px 20px;
-            color: #999;
+
+        .today-highlight {
+            background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
             font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.5s ease;
         }
-        .empty-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
-            opacity: 0.3;
+        @keyframes slideIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .today-highlight .icon {
+            font-size: 20px;
+        }
+        .today-highlight .text {
+            font-weight: 700;
         }
     </style>
 </head>
 <body>
     <!-- 顶部轮播条 -->
-    <div class="ticker-bar" id="tickerBar">
+    <div class="ticker-bar" id="tickerBar" onclick="toggleExpand()">
         <div class="ticker-label">🔥 缺货提醒</div>
         <div class="ticker-content">
             <div class="ticker-scroll" id="tickerScroll"></div>
         </div>
-        <div class="ticker-actions">
-            <button class="ticker-btn" onclick="openSearch()">🔍 搜索</button>
-            <button class="ticker-btn" onclick="openManage()">⚙️ 管理</button>
+        <div style="display:flex;align-items:center;flex-shrink:0;padding-right:8px;">
+            <button class="ticker-btn" onclick="event.stopPropagation();openManage()">⚙️ 管理</button>
         </div>
     </div>
-    
+
+    <!-- 数据更新提示条 -->
+    <div class="update-bar" id="updateBar">
+        🔔 数据有更新！请刷新页面查看最新内容
+        <button class="refresh-btn" onclick="location.reload()">🔄 立即刷新</button>
+        <button class="close-btn" onclick="document.getElementById('updateBar').classList.remove('show')">稍后再说</button>
+    </div>
+
     <!-- 主内容 -->
     <div class="main-content">
-        <!-- 搜索 -->
-        <div class="search-box" id="searchBox">
-            <h2>🔍 花色库存查询</h2>
-            <div class="search-input-wrap">
-                <input type="text" class="search-input" id="searchInput" placeholder="输入花色名称，如：小黑环、在逃公主..." onkeydown="if(event.key==='Enter')doSearch()">
-                <button class="search-btn" onclick="doSearch()">查询</button>
+        <div class="header">
+            <div>
+                <h1>📦 美瞳库存看板</h1>
+                <div class="subtitle">打开即见,无需搜索 - 接待前扫一眼,避免备注缺货花色</div>
             </div>
-            <div class="search-results" id="searchResults"></div>
+            <div class="header-actions">
+                <button class="header-btn secondary" onclick="toggleTickerOnly()">🎯 仅轮播</button>
+                <button class="header-btn" style="background: #e74c3c; color: white;" onclick="openQuickAdd()">➕ 快速添加</button>
+                <button class="header-btn primary" onclick="openManage()">⚙️ 管理数据</button>
+            </div>
         </div>
-        
+
+        <!-- 统计卡片 -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="number red" id="statOut">0</div>
+                <div class="label">缺货下架</div>
+                <div class="trend up">⚠️ 卖完不补</div>
+            </div>
+            <div class="stat-card">
+                <div class="number orange" id="statRestock">0</div>
+                <div class="label">预计到货</div>
+                <div class="trend">📅 告知客户</div>
+            </div>
+            <div class="stat-card">
+                <div class="number green" id="statToday">0</div>
+                <div class="label">今日到货</div>
+                <div class="trend down">✅ 可正常备注</div>
+            </div>
+            <div class="stat-card">
+                <div class="number blue" id="statTotal">0</div>
+                <div class="label">监控总数</div>
+                <div class="trend">📊 实时更新</div>
+            </div>
+        </div>
+
+        <!-- 今日到货提醒 -->
+        <div id="todayHighlight"></div>
+
         <!-- 面板 -->
         <div class="panels">
             <div class="panel">
                 <div class="panel-header">
-                    <h3><span class="icon icon-red"></span>缺货/下架</h3>
-                    <span class="count-badge" id="outCount">0</span>
+                    <div class="panel-title">
+                        <span class="dot dot-red"></span>
+                        缺货下架（卖完不补，查库存确认）
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;flex:1;justify-content:flex-end;">
+                        <input type="text" id="searchOut" placeholder="🔍 搜索花色..." style="padding:4px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;width:120px;" oninput="filterPanel('out')">
+                        <span class="panel-badge" id="outBadge">0</span>
+                        <button class="btn btn-small" style="background:#e74c3c;color:white;border:none;padding:4px 10px;font-size:12px;cursor:pointer;" onclick="togglePanelAdd('out')" title="添加缺货花色">➕</button>
+                    </div>
                 </div>
-                <div class="stock-list" id="outList"></div>
+                <div class="panel-add-form" id="panelAdd-out" style="display:none;padding:10px 16px;background:#f8f9fa;border-bottom:1px solid #f0f0f0;">
+                    <div style="font-size:11px;color:#888;margin-bottom:6px;">💡 支持批量粘贴，每行一个花色名</div>
+                    <div class="panel-add-row">
+                        <textarea id="panelOutName" placeholder="粘贴花色名称，每行一个&#10;如：&#10;蓝色圆舞曲半年抛&#10;笨蛋美女半年抛" rows="3" style="flex:1;font-family:inherit;font-size:13px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;resize:vertical;"></textarea>
+                        <button class="btn btn-primary btn-small" onclick="addPanelItemSmart('out')">添加</button>
+                    </div>
+                </div>
+                <div class="panel-body" id="outList"></div>
             </div>
             <div class="panel">
                 <div class="panel-header">
-                    <h3><span class="icon icon-orange"></span>预计到货</h3>
-                    <span class="count-badge" id="restockCount">0</span>
+                    <div class="panel-title">
+                        <span class="dot dot-orange"></span>
+                        预计到货
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;flex:1;justify-content:flex-end;">
+                        <input type="text" id="searchRestock" placeholder="🔍 搜索花色..." style="padding:4px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;width:120px;" oninput="filterPanel('restock')">
+                        <span class="panel-badge" id="restockBadge">0</span>
+                        <button class="btn btn-small" style="background:#e67e22;color:white;border:none;padding:4px 10px;font-size:12px;cursor:pointer;" onclick="togglePanelAdd('restock')" title="添加预计到货">➕</button>
+                    </div>
                 </div>
-                <div class="stock-list" id="restockList"></div>
+                <div class="panel-add-form" id="panelAdd-restock" style="display:none;padding:10px 16px;background:#f8f9fa;border-bottom:1px solid #f0f0f0;">
+                    <div style="font-size:11px;color:#888;margin-bottom:6px;">💡 智能识别：粘贴「花色：预计日期」格式，自动解析</div>
+                    <div class="panel-add-row">
+                        <textarea id="panelRestockSmart" placeholder="粘贴格式示例：&#10;蓝色圆舞曲半年抛：预计6.26号左右&#10;笨蛋美女半年抛：预计7.20号左右&#10;d在逃公主pro半年抛：预计26.6.21左右" rows="4" style="flex:1;font-family:inherit;font-size:13px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;resize:vertical;"></textarea>
+                        <button class="btn btn-primary btn-small" onclick="addPanelItemSmart('restock')">添加</button>
+                    </div>
+                </div>
+                <div class="panel-body" id="restockList"></div>
             </div>
         </div>
     </div>
-    
+
     <!-- 管理模态框 -->
     <div class="modal-overlay" id="manageModal">
         <div class="modal">
@@ -583,15 +835,133 @@
                 <button class="modal-close" onclick="closeManage()">&times;</button>
             </div>
             <div class="modal-body">
-                <!-- 添加表单 -->
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>花色名称</label>
-                        <input type="text" id="newName" placeholder="如：小黑环pro">
+                <div style="margin-bottom: 14px; padding: 8px 12px; background: #f8f9fa; border-radius: 6px; font-size: 13px;">
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600; color: #555;">
+                        <input type="checkbox" id="batchMode" onchange="toggleBatchMode()" style="width: 16px; height: 16px;">
+                        批量添加模式(一次添加多条)
+                    </label>
+                </div>
+
+                <!-- 单条添加表单 -->
+                <div id="singleForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>花色名称</label>
+                            <input type="text" id="newName" placeholder="如:小黑环pro">
+                        </div>
+                        <div class="form-group">
+                            <label>类型</label>
+                            <select id="newType">
+                            <option value="auto">🤖 自动识别(根据名称)</option>
+                                <option value="日抛">日抛</option>
+                                <option value="半年抛">半年抛</option>
+                                <option value="季抛">季抛</option>
+                                <option value="月抛">月抛</option>
+                                <option value="年抛">年抛</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>状态</label>
+                            <select id="newStatus" onchange="toggleDateField()">
+                                <option value="permanent">缺货下架(不补货)</option>
+                                <option value="restocking">预计到货</option>
+                                <option value="ok">已到货/恢复正常</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="dateGroup">
+                            <label>预计日期</label>
+                            <input type="text" id="newDate" placeholder="如:6.30 或 7月初">
+                        </div>
                     </div>
                     <div class="form-group">
+                        <label>备注</label>
+                        <input type="text" id="newNote" placeholder="可选:如 仅6片装缺货">
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="resetForm()">清空</button>
+                        <button class="btn btn-primary" onclick="addItem()">➕ 添加</button>
+                    </div>
+                </div>
+
+                <!-- 批量添加表单 -->
+                <div id="batchForm" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>类型(批量花色共用,或选自动识别)</label>
+                            <select id="batchType">
+                                <option value="auto">🤖 自动识别(根据名称)</option>
+                                <option value="半年抛">半年抛</option>
+                                <option value="季抛">季抛</option>
+                                <option value="月抛">月抛</option>
+                                <option value="年抛">年抛</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>状态</label>
+                            <select id="batchStatus" onchange="toggleBatchDateField()">
+                                <option value="permanent">缺货下架(不补货)</option>
+                                <option value="restocking">预计到货</option>
+                                <option value="ok">已到货/恢复正常</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" id="batchDateGroup">
+                            <label>预计日期(批量共用)</label>
+                            <input type="text" id="batchDate" placeholder="如:6.30 或 7月初">
+                        </div>
+                        <div class="form-group">
+                            <label>备注(共用)</label>
+                            <input type="text" id="batchNote" placeholder="可选:如 仅6片装缺货">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>花色列表(每行一个)</label>
+                        <textarea id="batchNames" rows="8" placeholder="粘贴花色名称,每行一个&#10;如:&#10;小黑环pro&#10;在逃公主&#10;柏林热吻" style="font-family: inherit; resize: vertical;"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="resetBatchForm()">清空</button>
+                        <button class="btn btn-primary" onclick="addBatchItems()">➕ 批量添加</button>
+                    </div>
+                </div>
+
+                <h3 style="margin: 20px 0 10px; font-size: 14px; color: #555;">当前库存列表</h3>
+                <div class="manage-list" id="manageList"></div>
+
+                <div class="data-ops">
+                    <h4>📦 团队数据同步(导出/导入)</h4>
+                    <p style="font-size: 12px; color: #888; margin-bottom: 8px;">复制下方代码发给同事,对方粘贴后点击"导入"即可同步</p>
+                    <textarea id="dataJson" readonly></textarea>
+                    <div class="data-ops-btns">
+                        <button class="btn btn-secondary btn-small" onclick="copyData()">📋 复制</button>
+                        <button class="btn btn-success btn-small" onclick="importData()">📥 导入</button>
+                        <button class="btn btn-danger btn-small" onclick="loadDefault()">🔄 重置默认</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快速添加模态框 -->
+    <div class="modal-overlay" id="quickAddModal">
+        <div class="modal" style="max-width: 420px;">
+            <div class="modal-header">
+                <h2>➕ 快速添加缺货</h2>
+                <button class="modal-close" onclick="closeQuickAdd()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: #888; margin-bottom: 12px;">在旺店通查到缺货?快速添加提醒同事</p>
+                <div class="form-group">
+                    <label>花色名称</label>
+                    <input type="text" id="quickName" placeholder="如:小黑环pro">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label>类型</label>
-                        <select id="newType">
+                        <select id="quickType">
+                            <option value="auto">🤖 自动识别</option>
                             <option value="日抛">日抛</option>
                             <option value="半年抛">半年抛</option>
                             <option value="季抛">季抛</option>
@@ -599,53 +969,35 @@
                             <option value="年抛">年抛</option>
                         </select>
                     </div>
-                </div>
-                <div class="form-row">
                     <div class="form-group">
                         <label>状态</label>
-                        <select id="newStatus" onchange="toggleDateField()">
-                            <option value="permanent">缺货下架（不补）</option>
+                        <select id="quickStatus">
+                            <option value="permanent">缺货下架(不补货)</option>
                             <option value="restocking">预计到货</option>
-                            <option value="ok">已到货/正常</option>
                         </select>
                     </div>
-                    <div class="form-group" id="dateGroup">
-                        <label>预计日期</label>
-                        <input type="text" id="newDate" placeholder="如：6.30 或 7月初">
-                    </div>
+                </div>
+                <div class="form-group" id="quickDateGroup" style="display: none;">
+                    <label>预计日期</label>
+                    <input type="text" id="quickDate" placeholder="如:6.30 或 7月初">
                 </div>
                 <div class="form-group">
-                    <label>备注</label>
-                    <input type="text" id="newNote" placeholder="可选：如 仅6片装缺货">
+                    <label>备注(可选)</label>
+                    <input type="text" id="quickNote" placeholder="如:仅6片装缺货">
                 </div>
                 <div class="form-actions">
-                    <button class="btn btn-secondary" onclick="resetForm()">清空</button>
-                    <button class="btn btn-primary" onclick="addItem()">➕ 添加</button>
-                </div>
-                
-                <!-- 现有列表 -->
-                <h3 style="margin: 24px 0 12px; font-size: 14px; color: #555;">当前库存列表</h3>
-                <div class="manage-list" id="manageList"></div>
-                
-                <!-- 数据导入导出 -->
-                <div class="data-ops">
-                    <h4>📦 数据导入/导出（团队共享用）</h4>
-                    <p style="font-size: 12px; color: #888; margin-bottom: 10px;">复制下方代码发给同事，对方粘贴后点击"导入"即可同步数据</p>
-                    <textarea id="dataJson" readonly></textarea>
-                    <div class="data-ops-btns">
-                        <button class="btn btn-secondary btn-small" onclick="copyData()">📋 复制</button>
-                        <button class="btn btn-success btn-small" onclick="importData()">📥 导入</button>
-                        <button class="btn btn-danger btn-small" onclick="loadDefault()">🔄 重置为默认数据</button>
-                    </div>
+                    <button class="btn btn-secondary" onclick="closeQuickAdd()">取消</button>
+                    <button class="btn btn-primary" onclick="quickAddItem()">✅ 添加提醒</button>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <div class="toast" id="toast"></div>
-    
+
     <script>
-        // 默认数据（从群公告提取）
+        // 默认数据
+        const DATA_VERSION = 2; // 数据版本号，每次更新数据后递增
         const DEFAULT_DATA = {
             outOfStock: [
                 { name: "超大酥酥绿", type: "半年抛", note: "缺货后续下架不补", status: "permanent", id: "1" },
@@ -670,89 +1022,364 @@
                 { name: "妮妮千金半年抛", type: "半年抛", expectedDate: "6.22", note: "", status: "restocking", id: "18" }
             ]
         };
-        
+
         let data = { outOfStock: [], restocking: [] };
-        
-        // 初始化
+        let checkedItems = JSON.parse(localStorage.getItem('checkedItems') || '[]');
+
         function init() {
-            const saved = localStorage.getItem('stockData');
-            if (saved) {
-                try {
-                    data = JSON.parse(saved);
-                } catch(e) {
-                    data = JSON.parse(JSON.stringify(DEFAULT_DATA));
-                }
-            } else {
-                data = JSON.parse(JSON.stringify(DEFAULT_DATA));
-            }
-            render();
+            // 先尝试从data.json加载最新数据
+            fetch('data.json')
+                .then(r => r.json())
+                .then(jsonData => {
+                    const savedVersion = localStorage.getItem('stockDataVersion');
+                    const jsonVersion = jsonData.version || 0;
+                    
+                    // 如果JSON版本更新，或没有本地数据，用JSON数据
+                    if (!savedVersion || parseInt(savedVersion) < jsonVersion) {
+                        data = { outOfStock: jsonData.outOfStock || [], restocking: jsonData.restocking || [] };
+                        localStorage.setItem('stockData', JSON.stringify(data));
+                        localStorage.setItem('stockDataVersion', jsonVersion.toString());
+                        showToast('已同步最新数据(v' + jsonVersion + ')');
+                    } else {
+                        const saved = localStorage.getItem('stockData');
+                        if (saved) {
+                            try { data = JSON.parse(saved); } 
+                            catch(e) { data = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
+                        } else {
+                            data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                        }
+                    }
+                    render();
+                })
+                .catch(err => {
+                    // 如果data.json加载失败，使用本地存储或默认数据
+                    const savedVersion = localStorage.getItem('stockDataVersion');
+                    const saved = localStorage.getItem('stockData');
+                    if (saved && savedVersion && parseInt(savedVersion) === DATA_VERSION) {
+                        try { data = JSON.parse(saved); } 
+                        catch(e) { data = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
+                    } else {
+                        data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                        if (saved && savedVersion && parseInt(savedVersion) !== DATA_VERSION) {
+                            showToast('数据已更新到最新版本(v' + DATA_VERSION + ')');
+                        }
+                    }
+                    localStorage.setItem('stockData', JSON.stringify(data));
+                    localStorage.setItem('stockDataVersion', DATA_VERSION.toString());
+                    render();
+                });
         }
-        
+
         function save() {
             localStorage.setItem('stockData', JSON.stringify(data));
+            localStorage.setItem('stockDataVersion', DATA_VERSION.toString());
             render();
-            showToast('已保存到本地');
         }
-        
+
+        // 定时检查是否有数据更新
+        function startUpdateChecker() {
+            // 每30秒检查一次
+            setInterval(() => {
+                fetch('data.json')
+                    .then(r => r.json())
+                    .then(jsonData => {
+                        const jsonVersion = jsonData.version || 0;
+                        const savedVersion = parseInt(localStorage.getItem('stockDataVersion') || '0');
+                        
+                        // 如果服务器版本比本地新，显示更新提示
+                        if (jsonVersion > savedVersion) {
+                            const bar = document.getElementById('updateBar');
+                            if (bar && !bar.classList.contains('show')) {
+                                bar.classList.add('show');
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        // 静默失败，不影响用户体验
+                    });
+            }, 30000); // 30秒检查一次
+        }
+
+        // 根据花色名称自动推断类型
+        function inferType(name) {
+            if (!name) return '日抛';
+            if (name.includes('6片装') || name.includes('2片装')) return '日抛';
+            return '半年抛';
+        }
+
+        // 检查是否已存在同名+同类型的花色
+        function isDuplicate(name, type) {
+            const allItems = [...data.outOfStock, ...data.restocking];
+            return allItems.some(i => i.name === name && i.type === type);
+        }
+
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            const today = new Date();
+            const year = today.getFullYear();
+
+            // 匹配 "6.21" "6.30" 格式
+            const m = dateStr.match(/(\d{1,2})\.(\d{1,2})/);
+            if (m) {
+                const month = parseInt(m[1]) - 1;
+                const day = parseInt(m[2]);
+                const d = new Date(year, month, day);
+                return d;
+            }
+            // 匹配 "7月初" 等模糊日期
+            if (dateStr.includes('初')) {
+                const m2 = dateStr.match(/(\d{1,2})/);
+                if (m2) return new Date(year, parseInt(m2[1]) - 1, 5);
+            }
+            return null;
+        }
+
+        function isToday(dateStr) {
+            const d = parseDate(dateStr);
+            if (!d) return false;
+            const today = new Date();
+            return d.getDate() === today.getDate() && d.getMonth() === today.getMonth();
+        }
+
+        function isPast(dateStr) {
+            const d = parseDate(dateStr);
+            if (!d) return false;
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            return d < today;
+        }
+
+        function isSoon(dateStr) {
+            const d = parseDate(dateStr);
+            if (!d) return false;
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const diff = (d - today) / (1000 * 60 * 60 * 24);
+            return diff >= 0 && diff <= 3;
+        }
+
         function render() {
-            // 轮播
+            // 统计
+            const todayArriving = data.restocking.filter(i => isToday(i.expectedDate));
+            document.getElementById('statOut').textContent = data.outOfStock.length;
+            document.getElementById('statRestock').textContent = data.restocking.length;
+            document.getElementById('statToday').textContent = todayArriving.length;
+            document.getElementById('statTotal').textContent = data.outOfStock.length + data.restocking.length;
+            document.getElementById('outBadge').textContent = data.outOfStock.length;
+            document.getElementById('restockBadge').textContent = data.restocking.length;
+
+            // 今日到货高亮
+            const highlight = document.getElementById('todayHighlight');
+            if (todayArriving.length > 0) {
+                highlight.innerHTML = `
+                    <div class="today-highlight">
+                        <span class="icon">🎉</span>
+                        <span class="text">今日到货:${todayArriving.map(i => i.name).join('、')} - 可以正常备注!</span>
+                    </div>
+                `;
+            } else {
+                highlight.innerHTML = '';
+            }
+
+            // 轮播:只显示即将到货和今日到货的,缺货下架的不显示
             const ticker = document.getElementById('tickerScroll');
             let items = [];
-            data.outOfStock.forEach(item => {
-                items.push(`<span class="ticker-item"><span class="badge permanent">下架</span>${item.name} ${item.type} — 缺货不补</span>`);
+            // 优先显示今日到货和即将到货的
+            const urgentItems = data.restocking.filter(i => isToday(i.expectedDate) || isSoon(i.expectedDate));
+            const otherItems = data.restocking.filter(i => !isToday(i.expectedDate) && !isSoon(i.expectedDate));
+
+            urgentItems.forEach(item => {
+                const today = isToday(item.expectedDate);
+                const label = today ? '✅今日到货' : `预计${item.expectedDate}左右到货`;
+                items.push(`<span class="ticker-item"><span class="badge">${today ? '今日' : '快到'}</span>${item.name} - <span class="date">${label}</span></span>`);
             });
-            data.restocking.forEach(item => {
-                items.push(`<span class="ticker-item"><span class="badge">待补</span>${item.name} ${item.type} — 预计${item.expectedDate}到货</span>`);
+            otherItems.forEach(item => {
+                items.push(`<span class="ticker-item"><span class="badge">待补</span>${item.name} - 预计${item.expectedDate}左右到货</span>`);
             });
-            // 复制一份实现无缝滚动
+
+            // 如果预计到货的太少,补一点缺货下架的兜底
+            if (items.length < 3) {
+                data.outOfStock.slice(0, 3 - items.length).forEach(item => {
+                    items.push(`<span class="ticker-item"><span class="badge down">下架</span>${item.name} - 缺货不补</span>`);
+                });
+            }
+
             ticker.innerHTML = items.join('') + items.join('');
             if (items.length === 0) {
-                ticker.innerHTML = '<span class="ticker-item">✅ 当前无库存异常</span>';
+                ticker.innerHTML = '<span class="ticker-item">✅ 当前所有花色库存正常</span>';
             }
-            
+
             // 缺货列表
             const outList = document.getElementById('outList');
-            document.getElementById('outCount').textContent = data.outOfStock.length;
             if (data.outOfStock.length === 0) {
                 outList.innerHTML = '<div class="empty"><div class="empty-icon">🎉</div>暂无缺货下架花色</div>';
             } else {
-                outList.innerHTML = data.outOfStock.map(item => `
-                    <div class="stock-item permanent">
-                        <div class="name">${item.name}</div>
-                        <div class="meta">
-                            <span class="tag">${item.type}</span>
-                            <span>缺货下架，不补货</span>
+                const sortedOut = [...data.outOfStock].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+                outList.innerHTML = sortedOut.map(item => {
+                    const isChecked = checkedItems.includes(item.id);
+                    return `
+                        <div class="stock-item permanent ${isChecked ? 'checked' : ''} ${item.pinned ? 'pinned' : ''}" data-id="${item.id}" data-name="${item.name}">
+                            <div class="name-row">
+                                <div style="display:flex;align-items:center;flex:1;">
+                                    <span class="name">${item.name}</span>
+                                    <span class="tag tag-type">${item.type}</span>
+                                    ${item.pinned ? '<span class="tag" style="background:#f59e0b;color:white;">⭐ 置顶</span>' : ''}
+                                </div>
+                                <span class="tag tag-status-down" onclick="showQuickEdit('${item.id}')" style="cursor:pointer;user-select:none;">缺货下架 ▾</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta">⚠️ 此花色后续不补货，但部分度数可能仍有库存，备注前请到旺店通查库存确认</span>
+                            </div>
+                            ${item.note ? `<div class="note">${item.note}</div>` : ''}
+                            <div style="display:flex;gap:8px;margin-top:10px;">
+                                <button class="check-btn" style="background:${item.pinned ? '#6b7280' : '#f59e0b'};color:white;" onclick="togglePin('${item.id}')">${item.pinned ? '☆ 取消置顶' : '⭐ 置顶'}</button>
+                                <button class="check-btn" style="background:#8b5cf6;" onclick="showQuickEdit('${item.id}')">✏️ 编辑</button>
+                            </div>
+                            <div class="quick-edit" id="edit-${item.id}" style="display:none;">
+                                <div class="quick-edit-row">
+                                    <input type="text" id="edit-name-${item.id}" value="${item.name}" placeholder="花色名称" style="flex:1;min-width:120px;">
+                                    <select id="edit-status-${item.id}" onchange="toggleEditDate('${item.id}')">
+                                        <option value="permanent">缺货下架</option>
+                                        <option value="restocking">预计到货</option>
+                                        <option value="ok">已到货/移除</option>
+                                    </select>
+                                    <input type="text" id="edit-date-${item.id}" placeholder="预计日期" style="display:none;width:100px;">
+                                    <button class="btn btn-primary btn-small" onclick="applyEdit('${item.id}')">保存</button>
+                                    <button class="btn btn-secondary btn-small" onclick="hideQuickEdit('${item.id}')">取消</button>
+                                    <button class="btn btn-danger btn-small" onclick="deleteItem('${item.id}')">🗑️</button>
+                                </div>
+                            </div>
                         </div>
-                        ${item.note ? `<div class="note">${item.note}</div>` : ''}
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
-            
+
             // 到货列表
             const restockList = document.getElementById('restockList');
-            document.getElementById('restockCount').textContent = data.restocking.length;
             if (data.restocking.length === 0) {
                 restockList.innerHTML = '<div class="empty"><div class="empty-icon">📦</div>暂无待补货花色</div>';
             } else {
-                restockList.innerHTML = data.restocking.map(item => `
-                    <div class="stock-item restocking">
-                        <div class="name">${item.name}</div>
-                        <div class="meta">
-                            <span class="tag">${item.type}</span>
-                            <span class="date">预计 ${item.expectedDate} 到货</span>
+                // 按紧急程度排序:今日到货 > 即将到货 > 其他，同时置顶优先
+                const sorted = [...data.restocking].sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1;
+                    if (!a.pinned && b.pinned) return 1;
+                    const aToday = isToday(a.expectedDate) ? 2 : isSoon(a.expectedDate) ? 1 : 0;
+                    const bToday = isToday(b.expectedDate) ? 2 : isSoon(b.expectedDate) ? 1 : 0;
+                    return bToday - aToday;
+                });
+
+                restockList.innerHTML = sorted.map(item => {
+                    const isChecked = checkedItems.includes(item.id);
+                    const today = isToday(item.expectedDate);
+                    const soon = isSoon(item.expectedDate) && !today;
+                    const past = isPast(item.expectedDate) && !today;
+                    const cls = today ? 'arriving-today' : soon ? 'arriving-soon' : 'restocking';
+                    const statusLabel = today ? '✅ 今日到货' : past ? '⚠️ 已逾期' : '预计到货';
+                    const statusCls = today ? 'tag-status-today' : 'tag-status-coming';
+                    const dateCls = today ? 'today' : past ? 'past' : '';
+                    const notifyText = `${item.name} 预计${item.expectedDate}左右到货`;
+
+                    return `
+                        <div class="stock-item ${cls} ${isChecked ? 'checked' : ''} ${item.pinned ? 'pinned' : ''}" data-id="${item.id}" data-name="${item.name}">
+                            <div class="name-row">
+                                <div style="display:flex;align-items:center;flex:1;">
+                                    <span class="name">${item.name}</span>
+                                    <span class="tag tag-type">${item.type}</span>
+                                    ${item.pinned ? '<span class="tag" style="background:#f59e0b;color:white;">⭐ 置顶</span>' : ''}
+                                </div>
+                                <span class="tag ${statusCls}" onclick="showQuickEdit('${item.id}')" style="cursor:pointer;user-select:none;">${statusLabel} ▾</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta">${today ? '可以正常备注!' : '告知客户预计到货时间'}</span>
+                                <span class="date ${dateCls}">${today ? '今日' : '预计 ' + item.expectedDate}</span>
+                            </div>
+                            ${item.note ? `<div class="note">${item.note}</div>` : ''}
+                            <div style="display:flex;gap:8px;margin-top:10px;">
+                                <button class="check-btn" style="background:${item.pinned ? '#6b7280' : '#f59e0b'};color:white;" onclick="togglePin('${item.id}')">${item.pinned ? '☆ 取消置顶' : '⭐ 置顶'}</button>
+                                <button class="check-btn" style="background:#3498db;" onclick="copyNotify('${item.name}', '${item.expectedDate}')">📋 复制</button>
+                                <button class="check-btn" style="background:#8b5cf6;" onclick="showQuickEdit('${item.id}')">✏️ 编辑</button>
+                            </div>
+                            <div class="quick-edit" id="edit-${item.id}" style="display:none;">
+                                <div class="quick-edit-row">
+                                    <input type="text" id="edit-name-${item.id}" value="${item.name}" placeholder="花色名称" style="flex:1;min-width:120px;">
+                                    <select id="edit-status-${item.id}" onchange="toggleEditDate('${item.id}')">
+                                        <option value="restocking" ${item.status === 'restocking' ? 'selected' : ''}>预计到货</option>
+                                        <option value="permanent">缺货下架</option>
+                                        <option value="ok">已到货/移除</option>
+                                    </select>
+                                    <input type="text" id="edit-date-${item.id}" placeholder="预计日期" value="${item.expectedDate || ''}" style="${item.status === 'restocking' ? '' : 'display:none;'}width:100px;">
+                                    <button class="btn btn-primary btn-small" onclick="applyEdit('${item.id}')">保存</button>
+                                    <button class="btn btn-secondary btn-small" onclick="hideQuickEdit('${item.id}')">取消</button>
+                                    <button class="btn btn-danger btn-small" onclick="deleteItem('${item.id}')">🗑️</button>
+                                </div>
+                            </div>
                         </div>
-                        ${item.note ? `<div class="note">${item.note}</div>` : ''}
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
-            
-            // 管理列表
+
             updateManageList();
-            
-            // 数据导出框
             document.getElementById('dataJson').value = JSON.stringify(data, null, 2);
+            // 保持当前搜索过滤状态
+            filterPanel('out');
+            filterPanel('restock');
         }
-        
+
+        function togglePin(id) {
+            let item = data.outOfStock.find(i => i.id === id);
+            if (!item) item = data.restocking.find(i => i.id === id);
+            if (!item) return;
+            item.pinned = !item.pinned;
+            save();
+            render();
+            showToast(item.pinned ? '「' + item.name + '」已置顶' : '「' + item.name + '」已取消置顶');
+        }
+
+        function toggleCheck(id) {
+            if (checkedItems.includes(id)) {
+                checkedItems = checkedItems.filter(i => i !== id);
+            } else {
+                checkedItems.push(id);
+            }
+            localStorage.setItem('checkedItems', JSON.stringify(checkedItems));
+            render();
+        }
+
+        function toggleExpand() {
+            // 点击轮播条可以展开/收起详情(可扩展)
+        }
+
+        function filterPanel(panel) {
+            const query = document.getElementById('search' + (panel === 'out' ? 'Out' : 'Restock')).value.trim().toLowerCase();
+            const list = document.getElementById(panel === 'out' ? 'outList' : 'restockList');
+            const items = list.querySelectorAll('.stock-item');
+            let visibleCount = 0;
+            items.forEach(item => {
+                const name = (item.getAttribute('data-name') || '').toLowerCase();
+                if (!query || name.includes(query)) {
+                    item.style.display = '';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            // 如果搜索但没有结果，显示提示
+            const noResult = list.querySelector('.no-search-result');
+            if (noResult) noResult.remove();
+            if (query && visibleCount === 0 && items.length > 0) {
+                const div = document.createElement('div');
+                div.className = 'no-search-result';
+                div.style.cssText = 'text-align:center;padding:20px;color:#999;font-size:13px;';
+                div.textContent = '🔍 未找到匹配「' + query + '」的花色';
+                list.appendChild(div);
+            }
+        }
+
+        function toggleTickerOnly() {
+            document.body.classList.toggle('ticker-only');
+            showToast(document.body.classList.contains('ticker-only') ? '已切换为仅轮播模式' : '已恢复完整看板');
+        }
+
         function updateManageList() {
             const allItems = [
                 ...data.outOfStock.map(i => ({...i, category: '缺货下架'})),
@@ -776,95 +1403,323 @@
                 `).join('');
             }
         }
-        
-        // 搜索
-        function openSearch() {
-            document.getElementById('searchInput').focus();
-            document.getElementById('searchInput').scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        function doSearch() {
-            const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
-            const results = document.getElementById('searchResults');
-            if (!keyword) {
-                results.classList.remove('active');
-                return;
-            }
-            
-            const allItems = [
-                ...data.outOfStock.map(i => ({...i, status: 'out'})),
-                ...data.restocking.map(i => ({...i, status: 'restock'}))
-            ];
-            
-            const matched = allItems.filter(item => item.name.toLowerCase().includes(keyword));
-            
-            if (matched.length === 0) {
-                results.innerHTML = `
-                    <div class="result-card ok">
-                        <div class="result-info">
-                            <h4>"${document.getElementById('searchInput').value}"</h4>
-                            <p>未在缺货/待补列表中找到，备注时正常处理</p>
-                        </div>
-                        <span class="result-status status-ok">正常库存</span>
-                    </div>
-                `;
-            } else {
-                results.innerHTML = matched.map(item => {
-                    const isOut = item.status === 'out';
-                    return `
-                        <div class="result-card ${isOut ? '' : 'warning'}">
-                            <div class="result-info">
-                                <h4>${item.name} ${item.type}</h4>
-                                <p>${isOut ? '缺货下架，不补货' : '预计 ' + item.expectedDate + ' 到货'}</p>
-                            </div>
-                            <span class="result-status ${isOut ? 'status-out' : 'status-restock'}">${isOut ? '⚠️ 缺货' : '📦 待补'}</span>
-                        </div>
-                    `;
-                }).join('');
-            }
-            results.classList.add('active');
-        }
-        
-        // 管理
+
         function openManage() {
             document.getElementById('manageModal').classList.add('active');
-            document.getElementById('dataJson').value = JSON.stringify(data, null, 2);
         }
-        
         function closeManage() {
             document.getElementById('manageModal').classList.remove('active');
             resetForm();
         }
-        
         function toggleDateField() {
             const status = document.getElementById('newStatus').value;
             document.getElementById('dateGroup').style.display = status === 'restocking' ? 'block' : 'none';
         }
-        
+        function toggleBatchMode() {
+            const batchMode = document.getElementById('batchMode').checked;
+            document.getElementById('singleForm').style.display = batchMode ? 'none' : 'block';
+            document.getElementById('batchForm').style.display = batchMode ? 'block' : 'none';
+            if (batchMode) toggleBatchDateField();
+        }
+        function toggleBatchDateField() {
+            const status = document.getElementById('batchStatus').value;
+            document.getElementById('batchDateGroup').style.display = status === 'restocking' ? 'block' : 'none';
+        }
+        function resetBatchForm() {
+            document.getElementById('batchNames').value = '';
+            document.getElementById('batchType').value = '日抛';
+            document.getElementById('batchStatus').value = 'permanent';
+            document.getElementById('batchDate').value = '';
+            document.getElementById('batchNote').value = '';
+            toggleBatchDateField();
+        }
+        function addBatchItems() {
+            const namesRaw = document.getElementById('batchNames').value.trim();
+            let type = document.getElementById('batchType').value;
+            const status = document.getElementById('batchStatus').value;
+            const date = document.getElementById('batchDate').value.trim();
+            const note = document.getElementById('batchNote').value.trim();
+            if (!namesRaw) { showToast('请输入花色列表'); return; }
+
+            const names = namesRaw.split('\n').map(n => n.trim()).filter(n => n);
+            if (names.length === 0) { showToast('请输入有效的花色名称'); return; }
+
+            let added = 0;
+            let skipped = 0;
+            const baseTime = Date.now();
+            names.forEach((name, idx) => {
+                // 自动推断类型
+                let finalType = type;
+                if (type === 'auto') {
+                    finalType = inferType(name);
+                }
+
+                // 去重检查
+                if (isDuplicate(name, finalType)) {
+                    skipped++;
+                    return;
+                }
+
+                const id = (baseTime + idx).toString();
+                const item = { name, type: finalType, status, note, id };
+                if (status === 'restocking') {
+                    item.expectedDate = date || '待定';
+                    data.restocking.push(item);
+                } else if (status === 'permanent') {
+                    item.note = note || '缺货后续下架不补';
+                    data.outOfStock.push(item);
+                } else {
+                    return;
+                }
+                added++;
+            });
+
+            if (status === 'ok') {
+                showToast('已到货的花色从监控中移除,未添加');
+                return;
+            }
+            save();
+            resetBatchForm();
+            let msg = '成功添加 ' + added + ' 款花色';
+            if (skipped > 0) msg += ',' + skipped + ' 款已存在自动跳过';
+            showToast(msg);
+        }
+
+        // === 快速添加 ===
+        function openQuickAdd() {
+            document.getElementById('quickAddModal').classList.add('active');
+            document.getElementById('quickStatus').addEventListener('change', toggleQuickDateField);
+            toggleQuickDateField();
+        }
+        function closeQuickAdd() {
+            document.getElementById('quickAddModal').classList.remove('active');
+            document.getElementById('quickName').value = '';
+            document.getElementById('quickType').value = 'auto';
+            document.getElementById('quickStatus').value = 'permanent';
+            document.getElementById('quickDate').value = '';
+            document.getElementById('quickNote').value = '';
+            toggleQuickDateField();
+        }
+        function toggleQuickDateField() {
+            const status = document.getElementById('quickStatus').value;
+            document.getElementById('quickDateGroup').style.display = status === 'restocking' ? 'block' : 'none';
+        }
+        function quickAddItem() {
+            const name = document.getElementById('quickName').value.trim();
+            let type = document.getElementById('quickType').value;
+            const status = document.getElementById('quickStatus').value;
+            const date = document.getElementById('quickDate').value.trim();
+            const note = document.getElementById('quickNote').value.trim();
+            if (!name) { showToast('请输入花色名称'); return; }
+
+            // 自动推断类型
+            if (type === 'auto') {
+                type = inferType(name);
+            }
+
+            // 去重检查
+            if (isDuplicate(name, type)) {
+                showToast('「' + name + '」已存在');
+                return;
+            }
+
+            const id = Date.now().toString();
+            const item = { name, type, status, note, id };
+
+            if (status === 'restocking') {
+                item.expectedDate = date || '待定';
+                data.restocking.push(item);
+            } else if (status === 'permanent') {
+                item.note = note || '缺货后续下架不补';
+                data.outOfStock.push(item);
+            }
+            save();
+            closeQuickAdd();
+            showToast('已添加「' + name + '」,同事会收到提醒');
+        }
+
+        // 复制通知文案到剪贴板
+        function copyNotify(name, date) {
+            const text = '【' + name + '】 预计' + date + '左右到货';
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('已复制:' + text);
+        }
+
+        // === 面板内快速添加 ===
+        function togglePanelAdd(panel) {
+            const el = document.getElementById('panelAdd-' + panel);
+            const isHidden = el.style.display === 'none' || el.style.display === '';
+            // 先隐藏所有面板添加表单
+            document.querySelectorAll('.panel-add-form').forEach(f => f.style.display = 'none');
+            if (isHidden) {
+                el.style.display = 'block';
+                if (panel === 'out') {
+                    document.getElementById('panelOutName').focus();
+                } else {
+                    document.getElementById('panelRestockSmart').focus();
+                }
+            }
+        }
+
+        // === 智能解析粘贴的文本 ===
+        function smartParseItems(text) {
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+            const items = [];
+            lines.forEach(line => {
+                // 尝试匹配 "花色名称：预计日期" 或 "花色名称:预计日期"
+                const m = line.match(/^(.+?)[\uff1a:]\s*预计\s*(.+)$/);
+                if (m) {
+                    let name = m[1].trim();
+                    let date = m[2].trim()
+                        .replace(/\u5de6\u53f3?$/, '')   // 去掉"左右"
+                        .replace(/\u53f7$/, '')          // 去掉"号"
+                        .replace(/^26\./, '')            // 去掉 "26." 前缀
+                        .trim();
+                    items.push({ name, date });
+                } else if (line) {
+                    // 没有日期格式，只提取名称
+                    items.push({ name: line, date: '\u5f85\u5b9a' });
+                }
+            });
+            return items;
+        }
+
+        function addPanelItemSmart(panel) {
+            let items, added = 0, skipped = 0, dupes = [];
+            if (panel === 'out') {
+                const text = document.getElementById('panelOutName').value.trim();
+                if (!text) { showToast('\u8bf7\u8f93\u5165\u82b1\u8272\u540d\u79f0'); return; }
+                items = text.split('\n').map(l => l.trim()).filter(l => l).map(name => ({ name, date: null }));
+                items.forEach((item, idx) => {
+                    const type = inferType(item.name);
+                    if (isDuplicate(item.name, type)) { skipped++; dupes.push(item.name); return; }
+                    const id = (Date.now() + idx).toString();
+                    data.outOfStock.push({ name: item.name, type, status: 'permanent', note: '\u7f3a\u8d27\u540e\u7eed\u4e0b\u67b6\u4e0d\u8865', id });
+                    added++;
+                });
+                document.getElementById('panelOutName').value = '';
+            } else {
+                const text = document.getElementById('panelRestockSmart').value.trim();
+                if (!text) { showToast('\u8bf7\u8d34\u4e0a\u82b1\u8272\u4fe1\u606f'); return; }
+                items = smartParseItems(text);
+                if (items.length === 0) { showToast('\u672a\u80fd\u8bc6\u522b\u5230\u6709\u6548\u683c\u5f0f'); return; }
+                items.forEach((item, idx) => {
+                    const type = inferType(item.name);
+                    if (isDuplicate(item.name, type)) { skipped++; dupes.push(item.name); return; }
+                    const id = (Date.now() + idx).toString();
+                    data.restocking.push({ name: item.name, type, status: 'restocking', expectedDate: item.date, id });
+                    added++;
+                });
+                document.getElementById('panelRestockSmart').value = '';
+            }
+            save();
+            let msg = '\u5df2\u6dfb\u52a0 ' + added + ' \u6761';
+            if (skipped > 0) msg += '\uff0c\u8df3\u8fc7 ' + skipped + ' \u6761\u91cd\u590d';
+            showToast(msg);
+            togglePanelAdd(panel);
+        }
+
+        // === 列表内联编辑 ===
+        function showQuickEdit(id) {
+            // 先隐藏其他编辑区
+            document.querySelectorAll('.quick-edit').forEach(el => el.style.display = 'none');
+            const editDiv = document.getElementById('edit-' + id);
+            if (editDiv) {
+                editDiv.style.display = 'block';
+            }
+        }
+        function hideQuickEdit(id) {
+            const editDiv = document.getElementById('edit-' + id);
+            if (editDiv) {
+                editDiv.style.display = 'none';
+            }
+        }
+        function toggleEditDate(id) {
+            const status = document.getElementById('edit-status-' + id).value;
+            const dateInput = document.getElementById('edit-date-' + id);
+            if (dateInput) {
+                dateInput.style.display = status === 'restocking' ? 'inline-block' : 'none';
+            }
+        }
+        function applyEdit(id) {
+            const status = document.getElementById('edit-status-' + id).value;
+            const dateInput = document.getElementById('edit-date-' + id);
+            const newDate = dateInput ? dateInput.value.trim() : '';
+            const nameInput = document.getElementById('edit-name-' + id);
+            const newName = nameInput ? nameInput.value.trim() : '';
+
+            // 找到当前条目
+            let item = data.outOfStock.find(i => i.id === id);
+            let fromList = 'outOfStock';
+            if (!item) {
+                item = data.restocking.find(i => i.id === id);
+                fromList = 'restocking';
+            }
+            if (!item) { showToast('未找到该条目'); return; }
+
+            // 更新名称
+            if (newName && newName !== item.name) {
+                item.name = newName;
+            }
+
+            // 删除旧条目
+            data.outOfStock = data.outOfStock.filter(i => i.id !== id);
+            data.restocking = data.restocking.filter(i => i.id !== id);
+
+            if (status === 'ok') {
+                showToast('「' + item.name + '」已移除');
+            } else if (status === 'restocking') {
+                item.status = 'restocking';
+                item.expectedDate = newDate || '待定';
+                delete item.note;
+                data.restocking.push(item);
+                showToast('「' + item.name + '」已设为预计到货' + (newDate ? '(' + newDate + ')' : ''));
+            } else if (status === 'permanent') {
+                item.status = 'permanent';
+                item.note = '缺货后续下架不补';
+                delete item.expectedDate;
+                data.outOfStock.push(item);
+                showToast('「' + item.name + '」已设为缺货下架');
+            }
+            save();
+            hideQuickEdit(id);
+        }
+
         function resetForm() {
             document.getElementById('newName').value = '';
-            document.getElementById('newType').value = '日抛';
+            document.getElementById('newType').value = 'auto';
             document.getElementById('newStatus').value = 'permanent';
             document.getElementById('newDate').value = '';
             document.getElementById('newNote').value = '';
             toggleDateField();
         }
-        
         function addItem() {
-            const name = document.getElementById('newName').value.trim();
-            const type = document.getElementById('newType').value;
+            let name = document.getElementById('newName').value.trim();
+            let type = document.getElementById('newType').value;
             const status = document.getElementById('newStatus').value;
             const date = document.getElementById('newDate').value.trim();
             const note = document.getElementById('newNote').value.trim();
-            
-            if (!name) {
-                showToast('请输入花色名称');
+            if (!name) { showToast('请输入花色名称'); return; }
+
+            // 自动推断类型
+            if (type === 'auto') {
+                type = inferType(name);
+            }
+
+            // 去重检查
+            if (isDuplicate(name, type)) {
+                showToast('「' + name + '」已存在,已自动跳过');
                 return;
             }
-            
+
             const id = Date.now().toString();
             const item = { name, type, status, note, id };
-            
+
             if (status === 'restocking') {
                 item.expectedDate = date || '待定';
                 data.restocking.push(item);
@@ -872,90 +1727,82 @@
                 item.note = note || '缺货后续下架不补';
                 data.outOfStock.push(item);
             } else {
-                // 已到货，不加入列表
-                showToast('已到货的花色无需加入监控');
+                showToast('已到货的花色从监控中移除');
                 return;
             }
-            
             save();
             resetForm();
             showToast('添加成功');
         }
-        
         function deleteItem(id) {
-            if (!confirm('确定删除这条记录？')) return;
+            if (!confirm('确定删除?')) return;
             data.outOfStock = data.outOfStock.filter(i => i.id !== id);
             data.restocking = data.restocking.filter(i => i.id !== id);
+            checkedItems = checkedItems.filter(i => i !== id);
+            localStorage.setItem('checkedItems', JSON.stringify(checkedItems));
             save();
             showToast('已删除');
         }
-        
         function editItem(id) {
             let item = data.outOfStock.find(i => i.id === id) || data.restocking.find(i => i.id === id);
             if (!item) return;
-            
             document.getElementById('newName').value = item.name;
             document.getElementById('newType').value = item.type;
             document.getElementById('newStatus').value = item.status;
             document.getElementById('newDate').value = item.expectedDate || '';
             document.getElementById('newNote').value = item.note || '';
             toggleDateField();
-            
-            // 先删除旧项，等用户重新添加
             data.outOfStock = data.outOfStock.filter(i => i.id !== id);
             data.restocking = data.restocking.filter(i => i.id !== id);
             save();
-            showToast('已载入编辑，修改后点击添加');
+            showToast('已载入编辑,修改后点击添加');
         }
-        
         function copyData() {
             const textarea = document.getElementById('dataJson');
             textarea.select();
             document.execCommand('copy');
-            showToast('数据已复制，发给同事即可同步');
+            showToast('数据已复制,发给同事即可同步');
         }
-        
         function importData() {
             const text = document.getElementById('dataJson').value.trim();
-            if (!text) {
-                showToast('请粘贴数据');
-                return;
-            }
+            if (!text) { showToast('请粘贴数据'); return; }
             try {
                 const parsed = JSON.parse(text);
                 if (parsed.outOfStock && parsed.restocking) {
                     data = parsed;
                     save();
-                    showToast('导入成功！数据已同步');
+                    showToast('导入成功!数据已同步');
                 } else {
                     showToast('数据格式错误');
                 }
             } catch(e) {
-                showToast('JSON格式错误，请检查');
+                showToast('JSON格式错误');
             }
         }
-        
         function loadDefault() {
-            if (!confirm('确定重置为默认数据？当前修改会丢失。')) return;
+            if (!confirm('确定重置?当前修改会丢失')) return;
             data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+            checkedItems = [];
+            localStorage.setItem('checkedItems', '[]');
             save();
             showToast('已重置为默认数据');
         }
-        
         function showToast(msg) {
             const toast = document.getElementById('toast');
             toast.textContent = msg;
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
-        
-        // 点击模态框外部关闭
+
         document.getElementById('manageModal').addEventListener('click', function(e) {
             if (e.target === this) closeManage();
         });
-        
-        // 初始化
+        document.getElementById('quickAddModal').addEventListener('click', function(e) {
+            if (e.target === this) closeQuickAdd();
+        });
+
         init();
+        startUpdateChecker();
         toggleDateField();
     </script>
 </body>
