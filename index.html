@@ -698,16 +698,13 @@
             // 轮播
             const ticker = document.getElementById('tickerScroll');
             let items = [];
-            data.outOfStock.forEach(item => {
-                items.push(`<span class="ticker-item"><span class="badge permanent">下架</span>${item.name} ${item.type} — 缺货不补</span>`);
-            });
             data.restocking.forEach(item => {
                 items.push(`<span class="ticker-item"><span class="badge">待补</span>${item.name} ${item.type} — 预计${item.expectedDate}到货</span>`);
             });
             // 复制一份实现无缝滚动
             ticker.innerHTML = items.join('') + items.join('');
             if (items.length === 0) {
-                ticker.innerHTML = '<span class="ticker-item">✅ 当前无库存异常</span>';
+                ticker.innerHTML = '<span class="ticker-item">✅ 当前无补货计划</span>';
             }
             
             // 缺货列表
