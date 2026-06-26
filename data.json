@@ -81,6 +81,14 @@
   ],
   "restocking": [
     {
+      "name": "小黑环pro6片装",
+      "type": "日抛",
+      "expectedDate": "6.30",
+      "note": "",
+      "status": "restocking",
+      "id": "recvmSQADYYmYl"
+    },
+    {
       "name": "d在逃公主pro半年抛",
       "type": "半年抛",
       "expectedDate": "6.21",
