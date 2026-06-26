@@ -541,7 +541,6 @@
         <div class="ticker-actions">
             <button class="ticker-btn" onclick="openSearch()">🔍 搜索</button>
             <button class="ticker-btn" onclick="openManage()">⚙️ 管理</button>
-            <button class="ticker-btn" onclick="openTokenModal()" id="syncBtn">📝 编辑</button>
         </div>
     </div>
     
@@ -675,90 +674,7 @@
         let data = { outOfStock: [], restocking: [] };
         
         // 初始化
-        const GH_OWNER = 'yangru2026';
-        const GH_REPO = 'stock-monitor';
-        const GH_FILE = 'data.json';
-        let githubToken = localStorage.getItem('github_token') || '';
-        let isOnlineMode = false;
-        
-        async function loadFromGithub() {
-            try {
-                const res = await fetch('https://raw.githubusercontent.com/' + GH_OWNER + '/' + GH_REPO + '/main/' + GH_FILE + '?t=' + Date.now());
-                if (res.ok) {
-                    const remote = await res.json();
-                    if (remote.outOfStock && remote.restocking) {
-                        data = remote;
-                        localStorage.setItem('stockData', JSON.stringify(data));
-                        render();
-                        checkTokenStatus();
-                        return;
-                    }
-                }
-            } catch(e) {}
-            const saved = localStorage.getItem('stockData');
-            if (saved) { try { data = JSON.parse(saved); } catch(e) { data = JSON.parse(JSON.stringify(DEFAULT_DATA)); } }
-            else { data = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
-            render();
-            checkTokenStatus();
-        }
-        
-        async function syncToGithub() {
-            if (!githubToken) { showToast('请先配置Token'); return; }
-            try {
-                const shaRes = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_FILE, {
-                    headers: { 'Authorization': 'token ' + githubToken, 'User-Agent': 'stock-monitor' }
-                });
-                const shaData = await shaRes.json();
-                const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
-                const saveRes = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_FILE, {
-                    method: 'PUT',
-                    headers: { 'Authorization': 'token ' + githubToken, 'Content-Type': 'application/json', 'User-Agent': 'stock-monitor' },
-                    body: JSON.stringify({ message: 'Update stock data', content: content, sha: shaData.sha })
-                });
-                if (saveRes.ok) { showToast('已同步到云端！所有客服刷新可见'); }
-                else { showToast('同步失败，请检查Token'); }
-            } catch(e) { showToast('同步失败: ' + e.message); }
-        }
-        
-        function checkTokenStatus() {
-            if (githubToken) {
-                isOnlineMode = true;
-                const btn = document.getElementById('syncBtn');
-                if (btn) { btn.textContent = '☁️ 同步'; }
-            }
-        }
-        
-        function openTokenModal() {
-            document.getElementById('tokenModal').classList.add('active');
-            document.getElementById('tokenInput').value = githubToken;
-            document.getElementById('syncActions').style.display = githubToken ? 'block' : 'none';
-        }
-        
-        function closeTokenModal() {
-            document.getElementById('tokenModal').classList.remove('active');
-        }
-        
-        function saveToken() {
-            githubToken = document.getElementById('tokenInput').value.trim();
-            localStorage.setItem('github_token', githubToken);
-            if (githubToken) {
-                document.getElementById('syncActions').style.display = 'block';
-                isOnlineMode = true;
-                const btn = document.getElementById('syncBtn');
-                if (btn) { btn.textContent = '☁️ 同步'; }
-                showToast('Token已保存');
-            } else {
-                document.getElementById('syncActions').style.display = 'none';
-                isOnlineMode = false;
-                showToast('已清除Token');
-            }
-        }
-        
-        // Auto refresh every 30s
-        setInterval(() => { loadFromGithub(); }, 30000);
-        
         function init() {
-            loadFromGithub();
             const saved = localStorage.getItem('stockData');
             if (saved) {
                 try {
@@ -1034,10 +950,6 @@
         }
         
         // 点击模态框外部关闭
-        document.getElementById('tokenModal').addEventListener('click', function(e) {
-            if (e.target === this) closeTokenModal();
-        });
-        
         document.getElementById('manageModal').addEventListener('click', function(e) {
             if (e.target === this) closeManage();
         });
@@ -1046,32 +958,5 @@
         init();
         toggleDateField();
     </script>
-
-    <!-- Token配置模态框 -->
-    <div class="modal-overlay" id="tokenModal">
-        <div class="modal" style="max-width:420px;">
-            <div class="modal-header">
-                <h2>📝 配置同步</h2>
-                <button class="modal-close" onclick="closeTokenModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p style="font-size:13px;color:#888;margin-bottom:12px;">输入GitHub Token后可在线编辑库存数据，所有客服自动同步。</p>
-                <div class="form-group">
-                    <label>GitHub Personal Access Token</label>
-                    <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxx">
-                </div>
-                <div class="form-actions">
-                    <button class="btn btn-secondary" onclick="closeTokenModal()">取消</button>
-                    <button class="btn btn-primary" onclick="saveToken()">保存</button>
-                </div>
-                <div id="syncActions" style="margin-top:16px;display:none;">
-                    <hr style="border:none;border-top:1px solid #eee;margin:12px 0;">
-                    <p style="font-size:13px;color:#666;margin-bottom:8px;"><b>已启用在线同步</b></p>
-                    <button class="btn btn-primary" onclick="syncToGithub()" style="width:100%;">💾 立即同步到云端</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </body>
 </html>
