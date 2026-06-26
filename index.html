@@ -1,409 +1,1077 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>美瞳库存看板</title>
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  background: #f0f2f5;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 60px 20px 20px;
-}
-
-/* === 顶部轮播条 === */
-.ticker-bar {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 44px;
-  background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
-  color: white;
-  display: flex;
-  align-items: center;
-  z-index: 9999;
-  box-shadow: 0 2px 12px rgba(231, 76, 60, 0.3);
-}
-.ticker-label {
-  background: rgba(0,0,0,0.25);
-  padding: 0 18px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  font-weight: 800;
-  font-size: 14px;
-  letter-spacing: 1px;
-  flex-shrink: 0;
-}
-.ticker-content {
-  flex: 1;
-  overflow: hidden;
-  height: 44px;
-  line-height: 44px;
-  position: relative;
-  mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
-}
-.ticker-scroll {
-  display: flex;
-  animation: scroll 40s linear infinite;
-  white-space: nowrap;
-  position: absolute;
-  left: 0;
-}
-@keyframes scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-.ticker-item {
-  display: inline-flex;
-  align-items: center;
-  padding: 0 24px;
-  font-size: 13px;
-}
-.ticker-item .date { color: #ffeaa7; font-weight: 700; margin-left: 4px; }
-
-/* === 主内容区 === */
-.main { width: 100%; max-width: 960px; }
-
-/* 顶部操作栏 */
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.top-bar h1 { font-size: 24px; color: #1a1a2e; }
-.top-bar .sub { font-size: 13px; color: #888; margin-top: 4px; }
-.btn {
-  padding: 8px 16px; border-radius: 8px; border: none; font-size: 13px;
-  cursor: pointer; transition: all 0.2s; font-weight: 500;
-}
-.btn-primary { background: #4a90d9; color: #fff; }
-.btn-primary:hover { background: #357abd; }
-.btn-danger { background: #e74c3c; color: #fff; }
-.btn-danger:hover { background: #c0392b; }
-.btn-success { background: #27ae60; color: #fff; }
-.btn-success:hover { background: #219a52; }
-.btn-secondary { background: #fff; color: #666; border: 1px solid #ddd; }
-.btn-sm { padding: 6px 12px; font-size: 12px; }
-
-/* 卡片 */
-.card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-}
-.card-title {
-  font-size: 16px; font-weight: bold; color: #1a1a2e;
-  margin-bottom: 16px;
-  display: flex; justify-content: space-between; align-items: center;
-}
-
-/* 表格 */
-.table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #f0f0f0; }
-th { background: #fafbfc; font-weight: 600; color: #666; font-size: 13px; }
-tr:hover { background: #fafbfc; }
-.badge {
-  display: inline-block; padding: 3px 10px; border-radius: 4px;
-  font-size: 12px; font-weight: 600;
-}
-.badge-red { background: #fdecea; color: #c0392b; }
-.badge-orange { background: #fef5e7; color: #e67e22; }
-.badge-green { background: #eafaf1; color: #27ae60; }
-
-/* 编辑模式 */
-.edit-row td { padding: 8px 6px; }
-.edit-row input {
-  padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px;
-  font-size: 13px; width: 100%; outline: none; font-family: inherit;
-}
-.edit-row input:focus { border-color: #4a90d9; }
-.empty-tip { text-align: center; color: #999; padding: 30px; font-size: 13px; }
-
-/* Token 弹窗 */
-.modal-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5); z-index: 10000;
-  justify-content: center; align-items: center;
-}
-.modal-card {
-  background: #fff; border-radius: 16px; padding: 32px;
-  max-width: 420px; width: 90%; text-align: center;
-}
-.modal-card h3 { margin-bottom: 8px; font-size: 18px; }
-.modal-card p { font-size: 13px; color: #888; margin-bottom: 16px; }
-.modal-card input {
-  width: 100%; padding: 10px; border: 1px solid #ddd;
-  border-radius: 8px; margin-bottom: 12px; font-size: 13px;
-}
-.modal-card .btn { width: 100%; margin-bottom: 8px; }
-
-/* 底部 */
-.footer-bar {
-  text-align: center; padding: 20px; font-size: 12px; color: #aaa;
-}
-
-/* 提示条 */
-.toast {
-  position: fixed; top: 56px; right: 16px;
-  padding: 10px 18px; border-radius: 8px; color: #fff;
-  font-size: 13px; z-index: 10001;
-  animation: slideIn 0.3s ease;
-}
-.toast.ok { background: #27ae60; }
-.toast.err { background: #e74c3c; }
-@keyframes slideIn {
-  from { transform: translateX(100px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-@media (max-width: 640px) {
-  body { padding: 60px 10px 10px; }
-  .card { padding: 16px; }
-  th, td { padding: 8px 6px; font-size: 13px; }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美瞳库存监控台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        /* 顶部轮播条 */
+        .ticker-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 42px;
+            background: linear-gradient(90deg, #ff4757 0%, #ff6348 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            z-index: 9999;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: height 0.3s ease;
+        }
+        .ticker-bar.expanded {
+            height: auto;
+            min-height: 42px;
+        }
+        .ticker-label {
+            background: rgba(0,0,0,0.2);
+            padding: 0 16px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 14px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .ticker-content {
+            flex: 1;
+            overflow: hidden;
+            height: 42px;
+            line-height: 42px;
+            position: relative;
+        }
+        .ticker-scroll {
+            display: flex;
+            animation: scroll 30s linear infinite;
+            white-space: nowrap;
+            position: absolute;
+            left: 0;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .ticker-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 13px;
+        }
+        .ticker-item .badge {
+            background: rgba(255,255,255,0.25);
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin-right: 8px;
+            font-size: 11px;
+        }
+        .ticker-item .badge.permanent {
+            background: #2f3542;
+        }
+        .ticker-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 12px;
+            flex-shrink: 0;
+        }
+        .ticker-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        .ticker-btn:hover {
+            background: rgba(255,255,255,0.35);
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            margin-top: 42px;
+            padding: 20px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* 搜索栏 */
+        .search-box {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .search-box h2 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        .search-input-wrap {
+            display: flex;
+            gap: 10px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus {
+            border-color: #ff4757;
+        }
+        .search-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .search-btn:hover {
+            background: #ff6348;
+        }
+        .search-results {
+            margin-top: 16px;
+            display: none;
+        }
+        .search-results.active {
+            display: block;
+        }
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #ff4757;
+        }
+        .result-card.ok {
+            border-left-color: #2ed573;
+        }
+        .result-card.warning {
+            border-left-color: #ffa502;
+        }
+        .result-info h4 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .result-info p {
+            font-size: 12px;
+            color: #666;
+        }
+        .result-status {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .status-out {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .status-restock {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        .status-ok {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        /* 面板 */
+        .panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .panels { grid-template-columns: 1fr; }
+        }
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .panel h3 {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .panel h3 .icon {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .icon-red { background: #ff4757; }
+        .icon-orange { background: #ffa502; }
+        .count-badge {
+            background: #f0f0f0;
+            color: #666;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        .stock-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .stock-item {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stock-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .stock-item.permanent {
+            background: #ffebee;
+            border-left: 3px solid #c62828;
+        }
+        .stock-item.restocking {
+            background: #fff3e0;
+            border-left: 3px solid #e65100;
+        }
+        .stock-item .name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .stock-item .meta {
+            font-size: 12px;
+            color: #888;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .stock-item .meta .tag {
+            background: rgba(0,0,0,0.06);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+        .stock-item .date {
+            color: #e65100;
+            font-weight: 600;
+        }
+        .stock-item .note {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+            font-style: italic;
+        }
+        
+        /* 管理模态框 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+        .modal-header h2 {
+            font-size: 18px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        .modal-close:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .modal-body {
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #ff4757;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #ff4757;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #ff6348;
+        }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #555;
+        }
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        .btn-danger {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .btn-danger:hover {
+            background: #ffcdd2;
+        }
+        .btn-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .btn-success:hover {
+            background: #c8e6c9;
+        }
+        
+        /* 列表管理 */
+        .manage-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+        .manage-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+        .manage-item:last-child {
+            border-bottom: none;
+        }
+        .manage-item:hover {
+            background: #f8f9fa;
+        }
+        .manage-item-info {
+            flex: 1;
+        }
+        .manage-item-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .manage-item-meta {
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+        }
+        .manage-item-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .btn-small {
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+        
+        /* 数据导入导出 */
+        .data-ops {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+        .data-ops h4 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        .data-ops textarea {
+            width: 100%;
+            height: 120px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+        .data-ops-btns {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        /* 提示 */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 10001;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        /* 空状态 */
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-size: 13px;
+        }
+        .empty-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+            opacity: 0.3;
+        }
+    </style>
 </head>
 <body>
+    <!-- 顶部轮播条 -->
+    <div class="ticker-bar" id="tickerBar">
+        <div class="ticker-label">🔥 缺货提醒</div>
+        <div class="ticker-content">
+            <div class="ticker-scroll" id="tickerScroll"></div>
+        </div>
+        <div class="ticker-actions">
+            <button class="ticker-btn" onclick="openSearch()">🔍 搜索</button>
+            <button class="ticker-btn" onclick="openManage()">⚙️ 管理</button>
+            <button class="ticker-btn" onclick="openTokenModal()" id="syncBtn">📝 编辑</button>
+        </div>
+    </div>
+    
+    <!-- 主内容 -->
+    <div class="main-content">
+        <!-- 搜索 -->
+        <div class="search-box" id="searchBox">
+            <h2>🔍 花色库存查询</h2>
+            <div class="search-input-wrap">
+                <input type="text" class="search-input" id="searchInput" placeholder="输入花色名称，如：小黑环、在逃公主..." onkeydown="if(event.key==='Enter')doSearch()">
+                <button class="search-btn" onclick="doSearch()">查询</button>
+            </div>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+        
+        <!-- 面板 -->
+        <div class="panels">
+            <div class="panel">
+                <div class="panel-header">
+                    <h3><span class="icon icon-red"></span>缺货/下架</h3>
+                    <span class="count-badge" id="outCount">0</span>
+                </div>
+                <div class="stock-list" id="outList"></div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <h3><span class="icon icon-orange"></span>预计到货</h3>
+                    <span class="count-badge" id="restockCount">0</span>
+                </div>
+                <div class="stock-list" id="restockList"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 管理模态框 -->
+    <div class="modal-overlay" id="manageModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>⚙️ 库存管理</h2>
+                <button class="modal-close" onclick="closeManage()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- 添加表单 -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>花色名称</label>
+                        <input type="text" id="newName" placeholder="如：小黑环pro">
+                    </div>
+                    <div class="form-group">
+                        <label>类型</label>
+                        <select id="newType">
+                            <option value="日抛">日抛</option>
+                            <option value="半年抛">半年抛</option>
+                            <option value="季抛">季抛</option>
+                            <option value="月抛">月抛</option>
+                            <option value="年抛">年抛</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>状态</label>
+                        <select id="newStatus" onchange="toggleDateField()">
+                            <option value="permanent">缺货下架（不补）</option>
+                            <option value="restocking">预计到货</option>
+                            <option value="ok">已到货/正常</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="dateGroup">
+                        <label>预计日期</label>
+                        <input type="text" id="newDate" placeholder="如：6.30 或 7月初">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <input type="text" id="newNote" placeholder="可选：如 仅6片装缺货">
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="resetForm()">清空</button>
+                    <button class="btn btn-primary" onclick="addItem()">➕ 添加</button>
+                </div>
+                
+                <!-- 现有列表 -->
+                <h3 style="margin: 24px 0 12px; font-size: 14px; color: #555;">当前库存列表</h3>
+                <div class="manage-list" id="manageList"></div>
+                
+                <!-- 数据导入导出 -->
+                <div class="data-ops">
+                    <h4>📦 数据导入/导出（团队共享用）</h4>
+                    <p style="font-size: 12px; color: #888; margin-bottom: 10px;">复制下方代码发给同事，对方粘贴后点击"导入"即可同步数据</p>
+                    <textarea id="dataJson" readonly></textarea>
+                    <div class="data-ops-btns">
+                        <button class="btn btn-secondary btn-small" onclick="copyData()">📋 复制</button>
+                        <button class="btn btn-success btn-small" onclick="importData()">📥 导入</button>
+                        <button class="btn btn-danger btn-small" onclick="loadDefault()">🔄 重置为默认数据</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        // 默认数据（从群公告提取）
+        const DEFAULT_DATA = {
+            outOfStock: [
+                { name: "超大酥酥绿", type: "半年抛", note: "缺货后续下架不补", status: "permanent", id: "1" },
+                { name: "柏林热吻", type: "半年抛", note: "缺货后续下架不补", status: "permanent", id: "2" },
+                { name: "微醺海浪6片装", type: "日抛", note: "缺货后续下架不补", status: "permanent", id: "3" },
+                { name: "浮游记忆6片装", type: "日抛", note: "缺货后续下架不补", status: "permanent", id: "4" },
+                { name: "快乐小狗半年抛", type: "半年抛", note: "缺货后续下架不补", status: "permanent", id: "5" },
+                { name: "快乐小狗日抛6片装", type: "日抛", note: "缺货后续下架不补", status: "permanent", id: "6" },
+                { name: "蜂蜜罐罐6片装", type: "日抛", note: "缺货后续下架不补", status: "permanent", id: "7" },
+                { name: "月光骑士", type: "半年抛", note: "缺货后续下架不补", status: "permanent", id: "8" },
+                { name: "初恋小事", type: "半年抛", note: "缺货后续下架不补", status: "permanent", id: "9" },
+                { name: "超大荧光水母", type: "半年抛", note: "缺货后续下架不补", status: "permanent", id: "10" },
+                { name: "心动降临半年抛", type: "半年抛", note: "缺货后续下架不补", status: "permanent", id: "11" }
+            ],
+            restocking: [
+                { name: "小黑环pro6片装", type: "日抛", expectedDate: "6.30", note: "", status: "restocking", id: "12" },
+                { name: "d在逃公主pro半年抛", type: "半年抛", expectedDate: "6.21", note: "", status: "restocking", id: "13" },
+                { name: "超大宝宝棕", type: "半年抛", expectedDate: "6.30", note: "", status: "restocking", id: "14" },
+                { name: "无人区玫瑰半年抛", type: "半年抛", expectedDate: "6.30", note: "", status: "restocking", id: "15" },
+                { name: "d落日漫游", type: "半年抛", expectedDate: "7月初", note: "", status: "restocking", id: "16" },
+                { name: "d虚拟泪光半年抛", type: "半年抛", expectedDate: "6.21", note: "", status: "restocking", id: "17" },
+                { name: "妮妮千金半年抛", type: "半年抛", expectedDate: "6.22", note: "", status: "restocking", id: "18" }
+            ]
+        };
+        
+        let data = { outOfStock: [], restocking: [] };
+        
+        // 初始化
+        const GH_OWNER = 'yangru2026';
+        const GH_REPO = 'stock-monitor';
+        const GH_FILE = 'data.json';
+        let githubToken = localStorage.getItem('github_token') || '';
+        let isOnlineMode = false;
+        
+        async function loadFromGithub() {
+            try {
+                const res = await fetch('https://raw.githubusercontent.com/' + GH_OWNER + '/' + GH_REPO + '/main/' + GH_FILE + '?t=' + Date.now());
+                if (res.ok) {
+                    const remote = await res.json();
+                    if (remote.outOfStock && remote.restocking) {
+                        data = remote;
+                        localStorage.setItem('stockData', JSON.stringify(data));
+                        render();
+                        checkTokenStatus();
+                        return;
+                    }
+                }
+            } catch(e) {}
+            const saved = localStorage.getItem('stockData');
+            if (saved) { try { data = JSON.parse(saved); } catch(e) { data = JSON.parse(JSON.stringify(DEFAULT_DATA)); } }
+            else { data = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
+            render();
+            checkTokenStatus();
+        }
+        
+        async function syncToGithub() {
+            if (!githubToken) { showToast('请先配置Token'); return; }
+            try {
+                const shaRes = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_FILE, {
+                    headers: { 'Authorization': 'token ' + githubToken, 'User-Agent': 'stock-monitor' }
+                });
+                const shaData = await shaRes.json();
+                const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+                const saveRes = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_FILE, {
+                    method: 'PUT',
+                    headers: { 'Authorization': 'token ' + githubToken, 'Content-Type': 'application/json', 'User-Agent': 'stock-monitor' },
+                    body: JSON.stringify({ message: 'Update stock data', content: content, sha: shaData.sha })
+                });
+                if (saveRes.ok) { showToast('已同步到云端！所有客服刷新可见'); }
+                else { showToast('同步失败，请检查Token'); }
+            } catch(e) { showToast('同步失败: ' + e.message); }
+        }
+        
+        function checkTokenStatus() {
+            if (githubToken) {
+                isOnlineMode = true;
+                const btn = document.getElementById('syncBtn');
+                if (btn) { btn.textContent = '☁️ 同步'; }
+            }
+        }
+        
+        function openTokenModal() {
+            document.getElementById('tokenModal').classList.add('active');
+            document.getElementById('tokenInput').value = githubToken;
+            document.getElementById('syncActions').style.display = githubToken ? 'block' : 'none';
+        }
+        
+        function closeTokenModal() {
+            document.getElementById('tokenModal').classList.remove('active');
+        }
+        
+        function saveToken() {
+            githubToken = document.getElementById('tokenInput').value.trim();
+            localStorage.setItem('github_token', githubToken);
+            if (githubToken) {
+                document.getElementById('syncActions').style.display = 'block';
+                isOnlineMode = true;
+                const btn = document.getElementById('syncBtn');
+                if (btn) { btn.textContent = '☁️ 同步'; }
+                showToast('Token已保存');
+            } else {
+                document.getElementById('syncActions').style.display = 'none';
+                isOnlineMode = false;
+                showToast('已清除Token');
+            }
+        }
+        
+        // Auto refresh every 30s
+        setInterval(() => { loadFromGithub(); }, 30000);
+        
+        function init() {
+            loadFromGithub();
+            const saved = localStorage.getItem('stockData');
+            if (saved) {
+                try {
+                    data = JSON.parse(saved);
+                } catch(e) {
+                    data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                }
+            } else {
+                data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+            }
+            render();
+        }
+        
+        function save() {
+            localStorage.setItem('stockData', JSON.stringify(data));
+            render();
+            showToast('已保存到本地');
+        }
+        
+        function render() {
+            // 轮播
+            const ticker = document.getElementById('tickerScroll');
+            let items = [];
+            data.outOfStock.forEach(item => {
+                items.push(`<span class="ticker-item"><span class="badge permanent">下架</span>${item.name} ${item.type} — 缺货不补</span>`);
+            });
+            data.restocking.forEach(item => {
+                items.push(`<span class="ticker-item"><span class="badge">待补</span>${item.name} ${item.type} — 预计${item.expectedDate}到货</span>`);
+            });
+            // 复制一份实现无缝滚动
+            ticker.innerHTML = items.join('') + items.join('');
+            if (items.length === 0) {
+                ticker.innerHTML = '<span class="ticker-item">✅ 当前无库存异常</span>';
+            }
+            
+            // 缺货列表
+            const outList = document.getElementById('outList');
+            document.getElementById('outCount').textContent = data.outOfStock.length;
+            if (data.outOfStock.length === 0) {
+                outList.innerHTML = '<div class="empty"><div class="empty-icon">🎉</div>暂无缺货下架花色</div>';
+            } else {
+                outList.innerHTML = data.outOfStock.map(item => `
+                    <div class="stock-item permanent">
+                        <div class="name">${item.name}</div>
+                        <div class="meta">
+                            <span class="tag">${item.type}</span>
+                            <span>缺货下架，不补货</span>
+                        </div>
+                        ${item.note ? `<div class="note">${item.note}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+            
+            // 到货列表
+            const restockList = document.getElementById('restockList');
+            document.getElementById('restockCount').textContent = data.restocking.length;
+            if (data.restocking.length === 0) {
+                restockList.innerHTML = '<div class="empty"><div class="empty-icon">📦</div>暂无待补货花色</div>';
+            } else {
+                restockList.innerHTML = data.restocking.map(item => `
+                    <div class="stock-item restocking">
+                        <div class="name">${item.name}</div>
+                        <div class="meta">
+                            <span class="tag">${item.type}</span>
+                            <span class="date">预计 ${item.expectedDate} 到货</span>
+                        </div>
+                        ${item.note ? `<div class="note">${item.note}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+            
+            // 管理列表
+            updateManageList();
+            
+            // 数据导出框
+            document.getElementById('dataJson').value = JSON.stringify(data, null, 2);
+        }
+        
+        function updateManageList() {
+            const allItems = [
+                ...data.outOfStock.map(i => ({...i, category: '缺货下架'})),
+                ...data.restocking.map(i => ({...i, category: '预计到货'}))
+            ];
+            const list = document.getElementById('manageList');
+            if (allItems.length === 0) {
+                list.innerHTML = '<div class="empty">暂无数据</div>';
+            } else {
+                list.innerHTML = allItems.map(item => `
+                    <div class="manage-item">
+                        <div class="manage-item-info">
+                            <div class="manage-item-name">${item.name}</div>
+                            <div class="manage-item-meta">${item.type} | ${item.category}${item.expectedDate ? ' | 预计' + item.expectedDate : ''}</div>
+                        </div>
+                        <div class="manage-item-actions">
+                            <button class="btn btn-secondary btn-small" onclick="editItem('${item.id}')">编辑</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteItem('${item.id}')">删除</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        // 搜索
+        function openSearch() {
+            document.getElementById('searchInput').focus();
+            document.getElementById('searchInput').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function doSearch() {
+            const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+            const results = document.getElementById('searchResults');
+            if (!keyword) {
+                results.classList.remove('active');
+                return;
+            }
+            
+            const allItems = [
+                ...data.outOfStock.map(i => ({...i, status: 'out'})),
+                ...data.restocking.map(i => ({...i, status: 'restock'}))
+            ];
+            
+            const matched = allItems.filter(item => item.name.toLowerCase().includes(keyword));
+            
+            if (matched.length === 0) {
+                results.innerHTML = `
+                    <div class="result-card ok">
+                        <div class="result-info">
+                            <h4>"${document.getElementById('searchInput').value}"</h4>
+                            <p>未在缺货/待补列表中找到，备注时正常处理</p>
+                        </div>
+                        <span class="result-status status-ok">正常库存</span>
+                    </div>
+                `;
+            } else {
+                results.innerHTML = matched.map(item => {
+                    const isOut = item.status === 'out';
+                    return `
+                        <div class="result-card ${isOut ? '' : 'warning'}">
+                            <div class="result-info">
+                                <h4>${item.name} ${item.type}</h4>
+                                <p>${isOut ? '缺货下架，不补货' : '预计 ' + item.expectedDate + ' 到货'}</p>
+                            </div>
+                            <span class="result-status ${isOut ? 'status-out' : 'status-restock'}">${isOut ? '⚠️ 缺货' : '📦 待补'}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+            results.classList.add('active');
+        }
+        
+        // 管理
+        function openManage() {
+            document.getElementById('manageModal').classList.add('active');
+            document.getElementById('dataJson').value = JSON.stringify(data, null, 2);
+        }
+        
+        function closeManage() {
+            document.getElementById('manageModal').classList.remove('active');
+            resetForm();
+        }
+        
+        function toggleDateField() {
+            const status = document.getElementById('newStatus').value;
+            document.getElementById('dateGroup').style.display = status === 'restocking' ? 'block' : 'none';
+        }
+        
+        function resetForm() {
+            document.getElementById('newName').value = '';
+            document.getElementById('newType').value = '日抛';
+            document.getElementById('newStatus').value = 'permanent';
+            document.getElementById('newDate').value = '';
+            document.getElementById('newNote').value = '';
+            toggleDateField();
+        }
+        
+        function addItem() {
+            const name = document.getElementById('newName').value.trim();
+            const type = document.getElementById('newType').value;
+            const status = document.getElementById('newStatus').value;
+            const date = document.getElementById('newDate').value.trim();
+            const note = document.getElementById('newNote').value.trim();
+            
+            if (!name) {
+                showToast('请输入花色名称');
+                return;
+            }
+            
+            const id = Date.now().toString();
+            const item = { name, type, status, note, id };
+            
+            if (status === 'restocking') {
+                item.expectedDate = date || '待定';
+                data.restocking.push(item);
+            } else if (status === 'permanent') {
+                item.note = note || '缺货后续下架不补';
+                data.outOfStock.push(item);
+            } else {
+                // 已到货，不加入列表
+                showToast('已到货的花色无需加入监控');
+                return;
+            }
+            
+            save();
+            resetForm();
+            showToast('添加成功');
+        }
+        
+        function deleteItem(id) {
+            if (!confirm('确定删除这条记录？')) return;
+            data.outOfStock = data.outOfStock.filter(i => i.id !== id);
+            data.restocking = data.restocking.filter(i => i.id !== id);
+            save();
+            showToast('已删除');
+        }
+        
+        function editItem(id) {
+            let item = data.outOfStock.find(i => i.id === id) || data.restocking.find(i => i.id === id);
+            if (!item) return;
+            
+            document.getElementById('newName').value = item.name;
+            document.getElementById('newType').value = item.type;
+            document.getElementById('newStatus').value = item.status;
+            document.getElementById('newDate').value = item.expectedDate || '';
+            document.getElementById('newNote').value = item.note || '';
+            toggleDateField();
+            
+            // 先删除旧项，等用户重新添加
+            data.outOfStock = data.outOfStock.filter(i => i.id !== id);
+            data.restocking = data.restocking.filter(i => i.id !== id);
+            save();
+            showToast('已载入编辑，修改后点击添加');
+        }
+        
+        function copyData() {
+            const textarea = document.getElementById('dataJson');
+            textarea.select();
+            document.execCommand('copy');
+            showToast('数据已复制，发给同事即可同步');
+        }
+        
+        function importData() {
+            const text = document.getElementById('dataJson').value.trim();
+            if (!text) {
+                showToast('请粘贴数据');
+                return;
+            }
+            try {
+                const parsed = JSON.parse(text);
+                if (parsed.outOfStock && parsed.restocking) {
+                    data = parsed;
+                    save();
+                    showToast('导入成功！数据已同步');
+                } else {
+                    showToast('数据格式错误');
+                }
+            } catch(e) {
+                showToast('JSON格式错误，请检查');
+            }
+        }
+        
+        function loadDefault() {
+            if (!confirm('确定重置为默认数据？当前修改会丢失。')) return;
+            data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+            save();
+            showToast('已重置为默认数据');
+        }
+        
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+        
+        // 点击模态框外部关闭
+        document.getElementById('tokenModal').addEventListener('click', function(e) {
+            if (e.target === this) closeTokenModal();
+        });
+        
+        document.getElementById('manageModal').addEventListener('click', function(e) {
+            if (e.target === this) closeManage();
+        });
+        
+        // 初始化
+        init();
+        toggleDateField();
+    </script>
 
-<!-- 顶部轮播 -->
-<div class="ticker-bar" id="tickerBar" style="display:none;">
-  <div class="ticker-label">📦 补货中</div>
-  <div class="ticker-content">
-    <div class="ticker-scroll" id="tickerScroll"></div>
-  </div>
-</div>
-
-<div class="main">
-
-<!-- 顶部 -->
-<div class="top-bar">
-  <div>
-    <h1>美瞳库存看板</h1>
-    <div class="sub">实时同步 · 自动刷新 · 多客服共享</div>
-  </div>
-  <div style="display:flex; gap:8px;">
-    <button class="btn btn-secondary" onclick="toggleEdit()" id="editBtn">📝 编辑模式</button>
-    <button class="btn btn-primary" onclick="refreshData()">🔄 刷新</button>
-    <button class="btn btn-secondary" onclick="showToken()">⚙️</button>
-  </div>
-</div>
-
-<!-- 缺货 -->
-<div class="card">
-  <div class="card-title">
-    <span>🚫 缺货 / 下架</span>
-    <span class="badge badge-red" id="outCount">0</span>
-  </div>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>名称</th><th>类型</th><th>备注</th><th style="width:70px" id="outHead"></th></tr></thead>
-      <tbody id="outBody"></tbody>
-    </table>
-    <div class="empty-tip" id="outEmpty" style="display:none;">暂无缺货记录</div>
-  </div>
-  <div style="margin-top:10px; display:none;" id="outAddWrap">
-    <button class="btn btn-danger btn-sm" onclick="addItem('outOfStock')">+ 添加缺货</button>
-  </div>
-</div>
-
-<!-- 补货 -->
-<div class="card">
-  <div class="card-title">
-    <span>📦 补货中</span>
-    <span class="badge badge-orange" id="restockCount">0</span>
-  </div>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>名称</th><th>类型</th><th>预计到货</th><th>备注</th><th style="width:70px" id="restockHead"></th></tr></thead>
-      <tbody id="restockBody"></tbody>
-    </table>
-    <div class="empty-tip" id="restockEmpty" style="display:none;">暂无补货记录</div>
-  </div>
-  <div style="margin-top:10px; display:none;" id="restockAddWrap">
-    <button class="btn btn-success btn-sm" onclick="addItem('restocking')">+ 添加补货</button>
-  </div>
-</div>
-
-<div class="footer-bar">
-  ⏱ 每30秒自动刷新数据
-</div>
-
-</div>
-
-<!-- Token 配置 -->
-<div class="modal-overlay" id="tokenModal">
-  <div class="modal-card">
-    <h3>⚙️ 配置 Token</h3>
-    <p>输入 GitHub Token 后可在线编辑库存<br>Token 仅保存在本浏览器中</p>
-    <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxx">
-    <button class="btn btn-primary" onclick="saveToken()">保存</button>
-    <button class="btn btn-secondary" onclick="hideToken()">取消</button>
-  </div>
-</div>
-
-<script>
-const OWNER = 'yangru2026', REPO = 'stock-monitor', FILE = 'data.json';
-const RAW = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/${FILE}`;
-let data = { version: 2, outOfStock: [], restocking: [] };
-let editing = false;
-let token = localStorage.getItem('gh_token') || '';
-
-// Load
-async function loadData() {
-  try {
-    const r = await fetch(RAW + '?t=' + Date.now());
-    data = await r.json();
-    render();
-  } catch(e) { toast('加载失败，请刷新', 'err'); }
-}
-loadData();
-setInterval(() => { if (!editing) loadData(); }, 30000);
-
-// Render
-function render() {
-  // Out of stock
-  const outBody = document.getElementById('outBody');
-  outBody.innerHTML = '';
-  const outList = data.outOfStock || [];
-  document.getElementById('outCount').textContent = outList.length;
-  if (outList.length === 0) {
-    document.getElementById('outEmpty').style.display = 'block';
-  } else {
-    document.getElementById('outEmpty').style.display = 'none';
-    outList.forEach((it, i) => {
-      const tr = document.createElement('tr');
-      if (editing) {
-        tr.className = 'edit-row';
-        tr.innerHTML = `<td><input value="${esc(it.name)}" onchange="up('outOfStock',${i},'name',this.value)"></td>
-          <td><input value="${esc(it.type||'')}" onchange="up('outOfStock',${i},'type',this.value)"></td>
-          <td><input value="${esc(it.note||'')}" onchange="up('outOfStock',${i},'note',this.value)"></td>
-          <td><button class="btn btn-danger btn-sm" onclick="del('outOfStock',${i})">删</button></td>`;
-      } else {
-        tr.innerHTML = `<td><strong>${esc(it.name)}</strong></td>
-          <td><span class="badge badge-red">${esc(it.type||'-')}</span></td>
-          <td>${esc(it.note||'')}</td><td></td>`;
-      }
-      outBody.appendChild(tr);
-    });
-  }
-
-  // Restocking
-  const restockBody = document.getElementById('restockBody');
-  restockBody.innerHTML = '';
-  const restockList = data.restocking || [];
-  document.getElementById('restockCount').textContent = restockList.length;
-
-  // Ticker
-  const ticker = document.getElementById('tickerScroll');
-  const tickerBar = document.getElementById('tickerBar');
-  if (restockList.length === 0) {
-    document.getElementById('restockEmpty').style.display = 'block';
-    tickerBar.style.display = 'none';
-  } else {
-    document.getElementById('restockEmpty').style.display = 'none';
-    tickerBar.style.display = 'flex';
-    // Duplicate for seamless scroll
-    const items = restockList.map(it => `<span class="ticker-item">${esc(it.name)} <span class="date">${esc(it.expectedDate||'待定')}</span>到货</span>`).join('');
-    ticker.innerHTML = items + items;
-
-    restockList.forEach((it, i) => {
-      const tr = document.createElement('tr');
-      if (editing) {
-        tr.className = 'edit-row';
-        tr.innerHTML = `<td><input value="${esc(it.name)}" onchange="up('restocking',${i},'name',this.value)"></td>
-          <td><input value="${esc(it.type||'')}" onchange="up('restocking',${i},'type',this.value)"></td>
-          <td><input value="${esc(it.expectedDate||'')}" onchange="up('restocking',${i},'expectedDate',this.value)"></td>
-          <td><input value="${esc(it.note||'')}" onchange="up('restocking',${i},'note',this.value)"></td>
-          <td><button class="btn btn-danger btn-sm" onclick="del('restocking',${i})">删</button></td>`;
-      } else {
-        tr.innerHTML = `<td><strong>${esc(it.name)}</strong></td>
-          <td><span class="badge badge-orange">${esc(it.type||'-')}</span></td>
-          <td><span class="badge badge-green">${esc(it.expectedDate||'待定')}</span></td>
-          <td>${esc(it.note||'')}</td><td></td>`;
-      }
-      restockBody.appendChild(tr);
-    });
-  }
-}
-
-// Edit toggle
-function toggleEdit() {
-  if (!token) { showToken(); return; }
-  if (editing) {
-    // Save
-    saveData();
-    editing = false;
-    document.getElementById('editBtn').textContent = '📝 编辑模式';
-    document.getElementById('editBtn').className = 'btn btn-secondary';
-    document.getElementById('outAddWrap').style.display = 'none';
-    document.getElementById('restockAddWrap').style.display = 'none';
-  } else {
-    editing = true;
-    document.getElementById('editBtn').textContent = '💾 保存修改';
-    document.getElementById('editBtn').className = 'btn btn-success';
-    document.getElementById('outAddWrap').style.display = 'block';
-    document.getElementById('restockAddWrap').style.display = 'block';
-  }
-  render();
-}
-
-// Add / Update / Delete
-function addItem(type) {
-  if (!data[type]) data[type] = [];
-  const it = { name: '', type: '', note: '', status: type === 'outOfStock' ? 'permanent' : 'restocking', id: 'n' + Date.now() };
-  if (type === 'restocking') it.expectedDate = '';
-  data[type].push(it);
-  render();
-}
-function up(type, i, f, v) { if (data[type]) data[type][i][f] = v; }
-function del(type, i) { if (data[type] && confirm('确定删除？')) { data[type].splice(i, 1); render(); } }
-
-// Save to GitHub
-async function saveData() {
-  if (!token) return;
-  try {
-    const shaR = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
-      headers: { 'Authorization': 'token ' + token, 'User-Agent': 'stock' }
-    });
-    const shaD = await shaR.json();
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
-    const saveR = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
-      method: 'PUT',
-      headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json', 'User-Agent': 'stock' },
-      body: JSON.stringify({ message: 'Update stock', content: content, sha: shaD.sha })
-    });
-    if (saveR.ok) { toast('✅ 保存成功，其他人刷新可见', 'ok'); }
-    else { toast('❌ 保存失败', 'err'); }
-  } catch(e) { toast('❌ 保存失败', 'err'); }
-}
-
-// Refresh
-function refreshData() { loadData(); toast('🔄 已刷新', 'ok'); }
-
-// Token
-function showToken() { document.getElementById('tokenModal').style.display = 'flex'; document.getElementById('tokenInput').value = token; }
-function hideToken() { document.getElementById('tokenModal').style.display = 'none'; }
-function saveToken() { token = document.getElementById('tokenInput').value.trim(); localStorage.setItem('gh_token', token); hideToken(); toast('Token 已保存', 'ok'); }
-
-// Utils
-function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function toast(msg, type) {
-  const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg;
-  document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
-}
-</script>
+    <!-- Token配置模态框 -->
+    <div class="modal-overlay" id="tokenModal">
+        <div class="modal" style="max-width:420px;">
+            <div class="modal-header">
+                <h2>📝 配置同步</h2>
+                <button class="modal-close" onclick="closeTokenModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:13px;color:#888;margin-bottom:12px;">输入GitHub Token后可在线编辑库存数据，所有客服自动同步。</p>
+                <div class="form-group">
+                    <label>GitHub Personal Access Token</label>
+                    <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxx">
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="closeTokenModal()">取消</button>
+                    <button class="btn btn-primary" onclick="saveToken()">保存</button>
+                </div>
+                <div id="syncActions" style="margin-top:16px;display:none;">
+                    <hr style="border:none;border-top:1px solid #eee;margin:12px 0;">
+                    <p style="font-size:13px;color:#666;margin-bottom:8px;"><b>已启用在线同步</b></p>
+                    <button class="btn btn-primary" onclick="syncToGithub()" style="width:100%;">💾 立即同步到云端</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>
