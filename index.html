@@ -674,6 +674,141 @@
         .today-highlight .text {
             font-weight: 700;
         }
+    
+        /* === 同步浮动按钮 === */
+        .sync-fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #4a90d9;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(74, 144, 217, 0.4);
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .sync-fab:hover {
+            transform: scale(1.05);
+            background: #357abd;
+        }
+        .sync-fab.synced {
+            background: #27ae60;
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+        }
+        .sync-fab.synced::after {
+            content: '✓';
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #fff;
+            color: #27ae60;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #27ae60;
+        }
+        
+        /* Token 弹窗 */
+        .sync-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 10001;
+            align-items: center;
+            justify-content: center;
+        }
+        .sync-modal-overlay.active {
+            display: flex;
+        }
+        .sync-modal {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 420px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .sync-modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sync-modal-header h3 {
+            font-size: 16px;
+        }
+        .sync-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .sync-modal-close:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .sync-modal-body {
+            padding: 20px;
+        }
+        .sync-status-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+        .sync-status-box .ok { color: #27ae60; }
+        .sync-status-box .err { color: #e74c3c; }
+        .sync-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 12px;
+            outline: none;
+        }
+        .sync-input:focus {
+            border-color: #4a90d9;
+        }
+        .sync-btn-row {
+            display: flex;
+            gap: 10px;
+        }
+        .sync-btn-row .btn {
+            flex: 1;
+        }
+        .sync-help {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #888;
+        }
+        .sync-help a {
+            color: #4a90d9;
+        }
+
     </style>
 </head>
 <body>
@@ -974,20 +1109,156 @@
         let data = { outOfStock: [], restocking: [] };
         let checkedItems = JSON.parse(localStorage.getItem('checkedItems') || '[]');
 
+        // GitHub 配置
+        const GH_OWNER = 'yangru2026';
+        const GH_REPO = 'stock-monitor';
+        const GH_FILE = 'data.json';
+        let githubToken = localStorage.getItem('github_token') || '';
+        let isOnlineSync = false;
+        
+        async function loadFromGithub() {
+            try {
+                const res = await fetch('https://raw.githubusercontent.com/' + GH_OWNER + '/' + GH_REPO + '/main/' + GH_FILE + '?t=' + Date.now());
+                if (res.ok) {
+                    const remote = await res.json();
+                    if (remote.outOfStock && remote.restocking) {
+                        data = remote;
+                        localStorage.setItem('stockData', JSON.stringify(data));
+                        render();
+                        updateSyncStatus(true, '已从云端同步');
+                        return true;
+                    }
+                }
+            } catch(e) {}
+            return false;
+        }
+        
+        async function syncToGithub() {
+            if (!githubToken) {
+                showToast('请先配置 Token');
+                return false;
+            }
+            try {
+                const shaRes = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_FILE, {
+                    headers: { 'Authorization': 'token ' + githubToken, 'User-Agent': 'stock-monitor' }
+                });
+                const shaData = await shaRes.json();
+                const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+                const saveRes = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_FILE, {
+                    method: 'PUT',
+                    headers: { 'Authorization': 'token ' + githubToken, 'Content-Type': 'application/json', 'User-Agent': 'stock-monitor' },
+                    body: JSON.stringify({ message: 'Update stock data from web', content: content, sha: shaData.sha })
+                });
+                if (saveRes.ok) {
+                    showToast('✅ 已同步到云端！所有客服刷新可见');
+                    updateSyncStatus(true, '已同步');
+                    return true;
+                } else {
+                    showToast('❌ 同步失败，请检查 Token');
+                    return false;
+                }
+            } catch(e) {
+                showToast('❌ 同步失败: ' + e.message);
+                return false;
+            }
+        }
+        
+        function updateSyncStatus(ok, msg) {
+            const box = document.getElementById('syncStatusBox');
+            const text = document.getElementById('syncStatusText');
+            const fab = document.getElementById('syncFab');
+            if (box && text) {
+                text.textContent = msg;
+                text.className = ok ? 'ok' : 'err';
+            }
+            if (fab) {
+                fab.className = ok ? 'sync-fab synced' : 'sync-fab';
+                fab.title = ok ? '已同步 - 点击配置' : '未同步 - 点击配置';
+            }
+        }
+        
+        function openSyncModal() {
+            document.getElementById('syncModal').classList.add('active');
+            document.getElementById('tokenInput').value = githubToken;
+        }
+        
+        function closeSyncModal() {
+            document.getElementById('syncModal').classList.remove('active');
+        }
+        
+        function saveToken() {
+            githubToken = document.getElementById('tokenInput').value.trim();
+            localStorage.setItem('github_token', githubToken);
+            if (githubToken) {
+                isOnlineSync = true;
+                updateSyncStatus(true, '已配置');
+                showToast('Token 已保存');
+            } else {
+                isOnlineSync = false;
+                updateSyncStatus(false, '未配置');
+                showToast('已清除 Token');
+            }
+        }
+        
+        function syncNow() {
+            if (!githubToken) {
+                showToast('请先配置 Token');
+                return;
+            }
+            // First save current data to localStorage
+            localStorage.setItem('stockData', JSON.stringify(data));
+            // Then sync to GitHub
+            syncToGithub();
+        }
+        
+        async function testConnection() {
+            if (!githubToken) {
+                showToast('请先配置 Token');
+                return;
+            }
+            showToast('正在测试...');
+            const ok = await loadFromGithub();
+            if (ok) {
+                showToast('✅ 连接成功！数据已同步');
+            } else {
+                showToast('❌ 连接失败');
+            }
+        }
+        
+        // Auto refresh every 30s
+        setInterval(() => {
+            if (!isOnlineSync) loadFromGithub();
+        }, 30000);
+        
+        // Override save() to also sync when online
+        const originalSave = save;
+        save = function() {
+            localStorage.setItem('stockData', JSON.stringify(data));
+            render();
+            if (isOnlineSync && githubToken) {
+                syncToGithub();
+            }
+        };
+        
         function init() {
-            const saved = localStorage.getItem('stockData');
-            if (saved) {
-                try {
-                    data = JSON.parse(saved);
-                    // 如果保存的数据为空,回退到默认数据
-                    if (data.outOfStock.length === 0 && data.restocking.length === 0) {
+            // Try GitHub first
+            loadFromGithub().then(ok => {
+                if (!ok) {
+                    // Fallback to localStorage
+                    const saved = localStorage.getItem('stockData');
+                    if (saved) {
+                        try {
+                            data = JSON.parse(saved);
+                            if (data.outOfStock.length === 0 && data.restocking.length === 0) {
+                                data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                            }
+                        } catch(e) { data = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
+                    } else {
                         data = JSON.parse(JSON.stringify(DEFAULT_DATA));
                     }
-                } catch(e) { data = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
-            } else {
-                data = JSON.parse(JSON.stringify(DEFAULT_DATA));
-            }
-            render();
+                    render();
+                }
+            });
         }
 
         function save() {
@@ -1689,6 +1960,10 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
+        document.getElementById('syncModal').addEventListener('click', function(e) {
+            if (e.target === this) closeSyncModal();
+        });
+        
         document.getElementById('manageModal').addEventListener('click', function(e) {
             if (e.target === this) closeManage();
         });
@@ -1696,8 +1971,43 @@
             if (e.target === this) closeQuickAdd();
         });
 
+        if (githubToken) { isOnlineSync = true; updateSyncStatus(true, '已配置'); }
         init();
         toggleDateField();
     </script>
+
+    <!-- 同步浮动按钮 -->
+    <button class="sync-fab" id="syncFab" onclick="openSyncModal()" title="数据同步">☁️</button>
+    
+    <!-- 同步配置弹窗 -->
+    <div class="sync-modal-overlay" id="syncModal">
+        <div class="sync-modal">
+            <div class="sync-modal-header">
+                <h3>☁️ 云端同步</h3>
+                <button class="sync-modal-close" onclick="closeSyncModal()">&times;</button>
+            </div>
+            <div class="sync-modal-body">
+                <div class="sync-status-box" id="syncStatusBox">
+                    状态：<span class="err" id="syncStatusText">未配置 Token</span>
+                </div>
+                <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
+                    配置 GitHub Token 后，库存数据会自动同步到云端，所有客服打开同一个链接即可看到最新数据。
+                </p>
+                <input type="password" class="sync-input" id="tokenInput" placeholder="输入 GitHub Personal Access Token">
+                <div class="sync-btn-row">
+                    <button class="btn btn-secondary" onclick="closeSyncModal()">取消</button>
+                    <button class="btn btn-primary" onclick="saveToken()">保存 Token</button>
+                </div>
+                <div class="sync-btn-row" style="margin-top: 10px;">
+                    <button class="btn btn-success" onclick="syncNow()" style="width: 100%;">💾 立即同步到云端</button>
+                </div>
+                <div class="sync-help">
+                    <a href="https://github.com/settings/tokens" target="_blank">如何获取 Token？</a> | 
+                    <a href="#" onclick="testConnection(); return false;">测试连接</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
