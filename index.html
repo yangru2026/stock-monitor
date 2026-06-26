@@ -8,25 +8,79 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  background: #f5f7fa;
+  background: #f0f2f5;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px 20px;
 }
-.container { max-width: 900px; margin: 0 auto; padding: 16px; }
 
-/* Header */
-.header {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  display: flex; justify-content: space-between; align-items: center;
-  flex-wrap: wrap; gap: 12px;
+/* === 顶部轮播条 === */
+.ticker-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  z-index: 9999;
+  box-shadow: 0 2px 12px rgba(231, 76, 60, 0.3);
 }
-.header h1 { font-size: 20px; color: #1a1a2e; }
-.header .subtitle { font-size: 13px; color: #888; }
-.header .actions { display: flex; gap: 8px; }
+.ticker-label {
+  background: rgba(0,0,0,0.25);
+  padding: 0 18px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+.ticker-content {
+  flex: 1;
+  overflow: hidden;
+  height: 44px;
+  line-height: 44px;
+  position: relative;
+  mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+}
+.ticker-scroll {
+  display: flex;
+  animation: scroll 40s linear infinite;
+  white-space: nowrap;
+  position: absolute;
+  left: 0;
+}
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 24px;
+  font-size: 13px;
+}
+.ticker-item .date { color: #ffeaa7; font-weight: 700; margin-left: 4px; }
 
+/* === 主内容区 === */
+.main { width: 100%; max-width: 960px; }
+
+/* 顶部操作栏 */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.top-bar h1 { font-size: 24px; color: #1a1a2e; }
+.top-bar .sub { font-size: 13px; color: #888; margin-top: 4px; }
 .btn {
   padding: 8px 16px; border-radius: 8px; border: none; font-size: 13px;
   cursor: pointer; transition: all 0.2s; font-weight: 500;
@@ -37,424 +91,317 @@ body {
 .btn-danger:hover { background: #c0392b; }
 .btn-success { background: #27ae60; color: #fff; }
 .btn-success:hover { background: #219a52; }
-.btn-secondary { background: #f0f2f5; color: #666; border: 1px solid #ddd; }
+.btn-secondary { background: #fff; color: #666; border: 1px solid #ddd; }
 .btn-sm { padding: 6px 12px; font-size: 12px; }
 
-/* Ticker */
-.ticker-bar {
-  background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
-  color: white;
-  border-radius: 8px;
-  padding: 10px 16px;
-  margin-bottom: 16px;
-  font-size: 13px;
-  overflow: hidden;
-}
-.ticker-bar .label { font-weight: 700; margin-right: 8px; }
-.ticker-scroll { display: flex; gap: 20px; overflow-x: auto; }
-.ticker-item { white-space: nowrap; }
-.ticker-item .date { color: #ffeaa7; font-weight: 700; }
-
-/* Section */
-.section {
+/* 卡片 */
+.card {
   background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
 }
-.section-title {
+.card-title {
   font-size: 16px; font-weight: bold; color: #1a1a2e;
-  margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+  display: flex; justify-content: space-between; align-items: center;
 }
 
-/* Table */
+/* 表格 */
 .table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #f0f0f0; }
-th { background: #fafbfc; font-weight: 600; color: #666; font-size: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #f0f0f0; }
+th { background: #fafbfc; font-weight: 600; color: #666; font-size: 13px; }
 tr:hover { background: #fafbfc; }
 .badge {
-  display: inline-block; padding: 2px 8px; border-radius: 4px;
-  font-size: 11px; font-weight: 600;
+  display: inline-block; padding: 3px 10px; border-radius: 4px;
+  font-size: 12px; font-weight: 600;
 }
 .badge-red { background: #fdecea; color: #c0392b; }
 .badge-orange { background: #fef5e7; color: #e67e22; }
 .badge-green { background: #eafaf1; color: #27ae60; }
 
-/* Edit mode */
-.edit-row td { padding: 6px 8px; }
-.edit-row input, .edit-row select {
+/* 编辑模式 */
+.edit-row td { padding: 8px 6px; }
+.edit-row input {
   padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px;
-  font-size: 13px; width: 100%; outline: none;
+  font-size: 13px; width: 100%; outline: none; font-family: inherit;
 }
-.edit-row input:focus, .edit-row select:focus { border-color: #4a90d9; }
-.edit-actions { display: flex; gap: 6px; }
+.edit-row input:focus { border-color: #4a90d9; }
+.empty-tip { text-align: center; color: #999; padding: 30px; font-size: 13px; }
 
-/* Token config */
-.token-overlay {
+/* Token 弹窗 */
+.modal-overlay {
   display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5); z-index: 9999;
+  background: rgba(0,0,0,0.5); z-index: 10000;
   justify-content: center; align-items: center;
 }
-.token-card {
+.modal-card {
   background: #fff; border-radius: 16px; padding: 32px;
-  max-width: 400px; width: 90%; text-align: center;
+  max-width: 420px; width: 90%; text-align: center;
 }
-.token-card h3 { margin-bottom: 12px; }
-.token-card p { font-size: 13px; color: #888; margin-bottom: 16px; }
-.token-card input {
+.modal-card h3 { margin-bottom: 8px; font-size: 18px; }
+.modal-card p { font-size: 13px; color: #888; margin-bottom: 16px; }
+.modal-card input {
   width: 100%; padding: 10px; border: 1px solid #ddd;
   border-radius: 8px; margin-bottom: 12px; font-size: 13px;
 }
+.modal-card .btn { width: 100%; margin-bottom: 8px; }
 
-/* Status bar */
-.status-bar {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  background: #fff; border-top: 1px solid #eee;
-  padding: 10px 16px; display: flex; justify-content: space-between;
-  align-items: center; font-size: 12px; color: #888; z-index: 100;
+/* 底部 */
+.footer-bar {
+  text-align: center; padding: 20px; font-size: 12px; color: #aaa;
 }
-.status-bar .sync-ok { color: #27ae60; }
-.status-bar .sync-err { color: #e74c3c; }
 
-/* Toast */
+/* 提示条 */
 .toast {
-  position: fixed; top: 20px; right: 20px;
-  padding: 12px 20px; border-radius: 8px; color: #fff;
-  font-size: 13px; z-index: 10000; animation: slideIn 0.3s ease;
+  position: fixed; top: 56px; right: 16px;
+  padding: 10px 18px; border-radius: 8px; color: #fff;
+  font-size: 13px; z-index: 10001;
+  animation: slideIn 0.3s ease;
 }
-.toast.success { background: #27ae60; }
-.toast.error { background: #e74c3c; }
+.toast.ok { background: #27ae60; }
+.toast.err { background: #e74c3c; }
 @keyframes slideIn {
   from { transform: translateX(100px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
 
-.empty-tip { text-align: center; color: #888; padding: 30px; font-size: 13px; }
+@media (max-width: 640px) {
+  body { padding: 60px 10px 10px; }
+  .card { padding: 16px; }
+  th, td { padding: 8px 6px; font-size: 13px; }
+}
 </style>
 </head>
 <body>
 
-<div class="container">
+<!-- 顶部轮播 -->
+<div class="ticker-bar" id="tickerBar" style="display:none;">
+  <div class="ticker-label">📦 补货中</div>
+  <div class="ticker-content">
+    <div class="ticker-scroll" id="tickerScroll"></div>
+  </div>
+</div>
 
-<div class="header">
+<div class="main">
+
+<!-- 顶部 -->
+<div class="top-bar">
   <div>
     <h1>美瞳库存看板</h1>
-    <div class="subtitle">实时同步 | 自动刷新 | 多客服共享</div>
+    <div class="sub">实时同步 · 自动刷新 · 多客服共享</div>
   </div>
-  <div class="actions">
-    <button class="btn btn-secondary btn-sm" onclick="toggleEdit()" id="editBtn">📝 编辑模式</button>
-    <button class="btn btn-primary btn-sm" onclick="refreshData()">🔄 刷新</button>
-    <button class="btn btn-secondary btn-sm" onclick="showTokenConfig()">⚙️ 配置</button>
+  <div style="display:flex; gap:8px;">
+    <button class="btn btn-secondary" onclick="toggleEdit()" id="editBtn">📝 编辑模式</button>
+    <button class="btn btn-primary" onclick="refreshData()">🔄 刷新</button>
+    <button class="btn btn-secondary" onclick="showToken()">⚙️</button>
   </div>
 </div>
 
-<!-- 补货中轮播 -->
-<div class="ticker-bar" id="tickerBar" style="display:none;">
-  <span class="label">📦 补货中：</span>
-  <div class="ticker-scroll" id="tickerScroll"></div>
-</div>
-
-<!-- 缺货列表 -->
-<div class="section">
-  <div class="section-title">
-    <span>🚫 缺货/下架</span>
-    <span class="badge badge-red" id="outStockCount">0</span>
+<!-- 缺货 -->
+<div class="card">
+  <div class="card-title">
+    <span>🚫 缺货 / 下架</span>
+    <span class="badge badge-red" id="outCount">0</span>
   </div>
   <div class="table-wrap">
     <table>
-      <thead>
-        <tr><th>名称</th><th>类型</th><th>备注</th><th style="width:80px;">操作</th></tr>
-      </thead>
-      <tbody id="outStockBody"></tbody>
+      <thead><tr><th>名称</th><th>类型</th><th>备注</th><th style="width:70px" id="outHead"></th></tr></thead>
+      <tbody id="outBody"></tbody>
     </table>
-    <div class="empty-tip" id="outStockEmpty" style="display:none;">暂无缺货记录</div>
+    <div class="empty-tip" id="outEmpty" style="display:none;">暂无缺货记录</div>
   </div>
-  <div style="margin-top:12px; display:none;" id="addOutStockWrap">
-    <button class="btn btn-danger btn-sm" onclick="addRow('outOfStock')">+ 添加缺货</button>
+  <div style="margin-top:10px; display:none;" id="outAddWrap">
+    <button class="btn btn-danger btn-sm" onclick="addItem('outOfStock')">+ 添加缺货</button>
   </div>
 </div>
 
-<!-- 补货中列表 -->
-<div class="section">
-  <div class="section-title">
+<!-- 补货 -->
+<div class="card">
+  <div class="card-title">
     <span>📦 补货中</span>
     <span class="badge badge-orange" id="restockCount">0</span>
   </div>
   <div class="table-wrap">
     <table>
-      <thead>
-        <tr><th>名称</th><th>类型</th><th>预计到货</th><th>备注</th><th style="width:80px;">操作</th></tr>
-      </thead>
+      <thead><tr><th>名称</th><th>类型</th><th>预计到货</th><th>备注</th><th style="width:70px" id="restockHead"></th></tr></thead>
       <tbody id="restockBody"></tbody>
     </table>
     <div class="empty-tip" id="restockEmpty" style="display:none;">暂无补货记录</div>
   </div>
-  <div style="margin-top:12px; display:none;" id="addRestockWrap">
-    <button class="btn btn-success btn-sm" onclick="addRow('restocking')">+ 添加补货</button>
+  <div style="margin-top:10px; display:none;" id="restockAddWrap">
+    <button class="btn btn-success btn-sm" onclick="addItem('restocking')">+ 添加补货</button>
   </div>
 </div>
 
+<div class="footer-bar">
+  ⏱ 每30秒自动刷新数据
 </div>
 
-<!-- Token 配置弹窗 -->
-<div class="token-overlay" id="tokenOverlay">
-  <div class="token-card">
-    <h3>⚙️ GitHub Token 配置</h3>
-    <p>配置后可在线编辑库存数据，数据会自动同步给所有客服。<br>Token 仅保存在本机浏览器中。</p>
-    <input type="password" id="tokenInput" placeholder="输入 GitHub Personal Access Token">
-    <button class="btn btn-primary" onclick="saveToken()" style="width:100%;">保存</button>
-    <p style="margin-top:12px; font-size:12px; color:#999;">
-      <a href="https://github.com/settings/tokens" target="_blank" style="color:#4a90d9;">如何获取 Token？</a>
-    </p>
-    <button class="btn btn-secondary" onclick="hideTokenConfig()" style="margin-top:8px; width:100%;">取消</button>
+</div>
+
+<!-- Token 配置 -->
+<div class="modal-overlay" id="tokenModal">
+  <div class="modal-card">
+    <h3>⚙️ 配置 Token</h3>
+    <p>输入 GitHub Token 后可在线编辑库存<br>Token 仅保存在本浏览器中</p>
+    <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxx">
+    <button class="btn btn-primary" onclick="saveToken()">保存</button>
+    <button class="btn btn-secondary" onclick="hideToken()">取消</button>
   </div>
-</div>
-
-<!-- 底部状态栏 -->
-<div class="status-bar">
-  <span id="syncStatus">🔄 正在加载...</span>
-  <span>⏱ 每30秒自动刷新</span>
 </div>
 
 <script>
-// Config
-const OWNER = 'yangru2026';
-const REPO = 'stock-monitor';
-const FILE_PATH = 'data.json';
-const RAW_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/${FILE_PATH}`;
-
-// State
+const OWNER = 'yangru2026', REPO = 'stock-monitor', FILE = 'data.json';
+const RAW = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/${FILE}`;
 let data = { version: 2, outOfStock: [], restocking: [] };
-let isEditMode = false;
-let token = localStorage.getItem('github_token') || '';
-let autoRefresh = null;
+let editing = false;
+let token = localStorage.getItem('gh_token') || '';
 
-// Init
-loadData();
-startAutoRefresh();
-
-// Load data from GitHub
+// Load
 async function loadData() {
-  updateStatus('🔄 正在加载...');
   try {
-    const res = await fetch(RAW_URL + '?t=' + Date.now());
-    if (!res.ok) throw new Error('Load failed');
-    data = await res.json();
+    const r = await fetch(RAW + '?t=' + Date.now());
+    data = await r.json();
     render();
-    updateStatus('✅ 数据已同步 ' + new Date().toLocaleTimeString('zh-CN'));
-  } catch(e) {
-    updateStatus('❌ 加载失败，请检查网络');
-    showToast('加载失败，请刷新重试', 'error');
-  }
+  } catch(e) { toast('加载失败，请刷新', 'err'); }
 }
+loadData();
+setInterval(() => { if (!editing) loadData(); }, 30000);
 
 // Render
 function render() {
   // Out of stock
-  const outBody = document.getElementById('outStockBody');
-  const outEmpty = document.getElementById('outStockEmpty');
+  const outBody = document.getElementById('outBody');
   outBody.innerHTML = '';
-  
-  if (!data.outOfStock || data.outOfStock.length === 0) {
-    outEmpty.style.display = 'block';
+  const outList = data.outOfStock || [];
+  document.getElementById('outCount').textContent = outList.length;
+  if (outList.length === 0) {
+    document.getElementById('outEmpty').style.display = 'block';
   } else {
-    outEmpty.style.display = 'none';
-    data.outOfStock.forEach((item, idx) => {
+    document.getElementById('outEmpty').style.display = 'none';
+    outList.forEach((it, i) => {
       const tr = document.createElement('tr');
-      if (isEditMode) {
+      if (editing) {
         tr.className = 'edit-row';
-        tr.innerHTML = `
-          <td><input value="${esc(item.name)}" onchange="updateItem('outOfStock',${idx},'name',this.value)"></td>
-          <td><input value="${esc(item.type || '')}" onchange="updateItem('outOfStock',${idx},'type',this.value)"></td>
-          <td><input value="${esc(item.note || '')}" onchange="updateItem('outOfStock',${idx},'note',this.value)"></td>
-          <td class="edit-actions"><button class="btn btn-danger btn-sm" onclick="deleteItem('outOfStock',${idx})">删除</button></td>
-        `;
+        tr.innerHTML = `<td><input value="${esc(it.name)}" onchange="up('outOfStock',${i},'name',this.value)"></td>
+          <td><input value="${esc(it.type||'')}" onchange="up('outOfStock',${i},'type',this.value)"></td>
+          <td><input value="${esc(it.note||'')}" onchange="up('outOfStock',${i},'note',this.value)"></td>
+          <td><button class="btn btn-danger btn-sm" onclick="del('outOfStock',${i})">删</button></td>`;
       } else {
-        tr.innerHTML = `
-          <td><strong>${esc(item.name)}</strong></td>
-          <td><span class="badge badge-red">${esc(item.type || '-')}</span></td>
-          <td>${esc(item.note || '')}</td>
-          <td>-</td>
-        `;
+        tr.innerHTML = `<td><strong>${esc(it.name)}</strong></td>
+          <td><span class="badge badge-red">${esc(it.type||'-')}</span></td>
+          <td>${esc(it.note||'')}</td><td></td>`;
       }
       outBody.appendChild(tr);
     });
   }
-  document.getElementById('outStockCount').textContent = (data.outOfStock || []).length;
 
   // Restocking
   const restockBody = document.getElementById('restockBody');
-  const restockEmpty = document.getElementById('restockEmpty');
   restockBody.innerHTML = '';
-  
-  if (!data.restocking || data.restocking.length === 0) {
-    restockEmpty.style.display = 'block';
-    document.getElementById('tickerBar').style.display = 'none';
+  const restockList = data.restocking || [];
+  document.getElementById('restockCount').textContent = restockList.length;
+
+  // Ticker
+  const ticker = document.getElementById('tickerScroll');
+  const tickerBar = document.getElementById('tickerBar');
+  if (restockList.length === 0) {
+    document.getElementById('restockEmpty').style.display = 'block';
+    tickerBar.style.display = 'none';
   } else {
-    restockEmpty.style.display = 'none';
-    data.restocking.forEach((item, idx) => {
+    document.getElementById('restockEmpty').style.display = 'none';
+    tickerBar.style.display = 'flex';
+    // Duplicate for seamless scroll
+    const items = restockList.map(it => `<span class="ticker-item">${esc(it.name)} <span class="date">${esc(it.expectedDate||'待定')}</span>到货</span>`).join('');
+    ticker.innerHTML = items + items;
+
+    restockList.forEach((it, i) => {
       const tr = document.createElement('tr');
-      if (isEditMode) {
+      if (editing) {
         tr.className = 'edit-row';
-        tr.innerHTML = `
-          <td><input value="${esc(item.name)}" onchange="updateItem('restocking',${idx},'name',this.value)"></td>
-          <td><input value="${esc(item.type || '')}" onchange="updateItem('restocking',${idx},'type',this.value)"></td>
-          <td><input value="${esc(item.expectedDate || '')}" onchange="updateItem('restocking',${idx},'expectedDate',this.value)"></td>
-          <td><input value="${esc(item.note || '')}" onchange="updateItem('restocking',${idx},'note',this.value)"></td>
-          <td class="edit-actions"><button class="btn btn-danger btn-sm" onclick="deleteItem('restocking',${idx})">删除</button></td>
-        `;
+        tr.innerHTML = `<td><input value="${esc(it.name)}" onchange="up('restocking',${i},'name',this.value)"></td>
+          <td><input value="${esc(it.type||'')}" onchange="up('restocking',${i},'type',this.value)"></td>
+          <td><input value="${esc(it.expectedDate||'')}" onchange="up('restocking',${i},'expectedDate',this.value)"></td>
+          <td><input value="${esc(it.note||'')}" onchange="up('restocking',${i},'note',this.value)"></td>
+          <td><button class="btn btn-danger btn-sm" onclick="del('restocking',${i})">删</button></td>`;
       } else {
-        tr.innerHTML = `
-          <td><strong>${esc(item.name)}</strong></td>
-          <td><span class="badge badge-orange">${esc(item.type || '-')}</span></td>
-          <td><span class="badge badge-green">${esc(item.expectedDate || '待定')}</span></td>
-          <td>${esc(item.note || '')}</td>
-          <td>-</td>
-        `;
+        tr.innerHTML = `<td><strong>${esc(it.name)}</strong></td>
+          <td><span class="badge badge-orange">${esc(it.type||'-')}</span></td>
+          <td><span class="badge badge-green">${esc(it.expectedDate||'待定')}</span></td>
+          <td>${esc(it.note||'')}</td><td></td>`;
       }
       restockBody.appendChild(tr);
     });
-    
-    // Update ticker
-    const ticker = document.getElementById('tickerScroll');
-    ticker.innerHTML = data.restocking.map(i => 
-      `<span class="ticker-item">${esc(i.name)} <span class="date">${esc(i.expectedDate || '待定')}</span>到货</span>`
-    ).join('');
-    document.getElementById('tickerBar').style.display = 'block';
   }
-  document.getElementById('restockCount').textContent = (data.restocking || []).length;
 }
 
-// Toggle edit mode
+// Edit toggle
 function toggleEdit() {
-  if (!token) {
-    showToast('请先配置 GitHub Token 才能编辑', 'error');
-    showTokenConfig();
-    return;
-  }
-  isEditMode = !isEditMode;
-  document.getElementById('editBtn').textContent = isEditMode ? '💾 保存修改' : '📝 编辑模式';
-  document.getElementById('editBtn').className = isEditMode ? 'btn btn-success btn-sm' : 'btn btn-secondary btn-sm';
-  document.getElementById('addOutStockWrap').style.display = isEditMode ? 'block' : 'none';
-  document.getElementById('addRestockWrap').style.display = isEditMode ? 'block' : 'none';
-  
-  if (!isEditMode) {
-    // Saving
+  if (!token) { showToken(); return; }
+  if (editing) {
+    // Save
     saveData();
+    editing = false;
+    document.getElementById('editBtn').textContent = '📝 编辑模式';
+    document.getElementById('editBtn').className = 'btn btn-secondary';
+    document.getElementById('outAddWrap').style.display = 'none';
+    document.getElementById('restockAddWrap').style.display = 'none';
+  } else {
+    editing = true;
+    document.getElementById('editBtn').textContent = '💾 保存修改';
+    document.getElementById('editBtn').className = 'btn btn-success';
+    document.getElementById('outAddWrap').style.display = 'block';
+    document.getElementById('restockAddWrap').style.display = 'block';
   }
   render();
 }
 
-// Add row
-function addRow(type) {
+// Add / Update / Delete
+function addItem(type) {
   if (!data[type]) data[type] = [];
-  const newItem = { name: '', type: '', note: '', status: type === 'outOfStock' ? 'permanent' : 'restocking', id: 'new_' + Date.now() };
-  if (type === 'restocking') newItem.expectedDate = '';
-  data[type].push(newItem);
+  const it = { name: '', type: '', note: '', status: type === 'outOfStock' ? 'permanent' : 'restocking', id: 'n' + Date.now() };
+  if (type === 'restocking') it.expectedDate = '';
+  data[type].push(it);
   render();
 }
+function up(type, i, f, v) { if (data[type]) data[type][i][f] = v; }
+function del(type, i) { if (data[type] && confirm('确定删除？')) { data[type].splice(i, 1); render(); } }
 
-// Update item
-function updateItem(type, idx, field, value) {
-  if (!data[type]) return;
-  data[type][idx][field] = value;
-}
-
-// Delete item
-function deleteItem(type, idx) {
-  if (!data[type]) return;
-  if (confirm('确定删除这条记录？')) {
-    data[type].splice(idx, 1);
-    render();
-  }
-}
-
-// Save data to GitHub
+// Save to GitHub
 async function saveData() {
   if (!token) return;
-  updateStatus('💾 正在保存...');
-  
   try {
-    // Get current SHA
-    const shaRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`, {
-      headers: { 'Authorization': 'token ' + token, 'User-Agent': 'stock-monitor' }
+    const shaR = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
+      headers: { 'Authorization': 'token ' + token, 'User-Agent': 'stock' }
     });
-    const shaData = await shaRes.json();
-    
-    // Update file
+    const shaD = await shaR.json();
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
-    const saveRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`, {
+    const saveR = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
       method: 'PUT',
-      headers: {
-        'Authorization': 'token ' + token,
-        'Content-Type': 'application/json',
-        'User-Agent': 'stock-monitor'
-      },
-      body: JSON.stringify({
-        message: 'Update stock data via web',
-        content: content,
-        sha: shaData.sha
-      })
+      headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json', 'User-Agent': 'stock' },
+      body: JSON.stringify({ message: 'Update stock', content: content, sha: shaD.sha })
     });
-    
-    if (saveRes.ok) {
-      showToast('✅ 保存成功！所有客服刷新后可见', 'success');
-      updateStatus('✅ 已保存 ' + new Date().toLocaleTimeString('zh-CN'));
-    } else {
-      const err = await saveRes.json();
-      showToast('保存失败: ' + (err.message || '未知错误'), 'error');
-      updateStatus('❌ 保存失败');
-    }
-  } catch(e) {
-    showToast('保存失败: ' + e.message, 'error');
-    updateStatus('❌ 保存失败');
-  }
+    if (saveR.ok) { toast('✅ 保存成功，其他人刷新可见', 'ok'); }
+    else { toast('❌ 保存失败', 'err'); }
+  } catch(e) { toast('❌ 保存失败', 'err'); }
 }
 
 // Refresh
-function refreshData() {
-  loadData();
-  showToast('🔄 已刷新', 'success');
-}
+function refreshData() { loadData(); toast('🔄 已刷新', 'ok'); }
 
-// Auto refresh
-function startAutoRefresh() {
-  autoRefresh = setInterval(() => {
-    if (!isEditMode) loadData();
-  }, 30000); // 30秒
-}
+// Token
+function showToken() { document.getElementById('tokenModal').style.display = 'flex'; document.getElementById('tokenInput').value = token; }
+function hideToken() { document.getElementById('tokenModal').style.display = 'none'; }
+function saveToken() { token = document.getElementById('tokenInput').value.trim(); localStorage.setItem('gh_token', token); hideToken(); toast('Token 已保存', 'ok'); }
 
-// Token config
-function showTokenConfig() {
-  document.getElementById('tokenOverlay').style.display = 'flex';
-  document.getElementById('tokenInput').value = token;
-}
-function hideTokenConfig() {
-  document.getElementById('tokenOverlay').style.display = 'none';
-}
-function saveToken() {
-  token = document.getElementById('tokenInput').value.trim();
-  localStorage.setItem('github_token', token);
-  hideTokenConfig();
-  showToast('Token 已保存', 'success');
-}
-
-// Utilities
-function esc(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function updateStatus(text) {
-  document.getElementById('syncStatus').textContent = text;
-}
-function showToast(msg, type) {
-  const t = document.createElement('div');
-  t.className = 'toast ' + type;
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 3000);
+// Utils
+function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg, type) {
+  const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
 }
 </script>
 
